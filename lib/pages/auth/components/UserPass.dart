@@ -2,6 +2,7 @@ import 'package:akababi/bloc/auth/auth_bloc.dart';
 import 'package:akababi/bloc/auth/auth_event.dart';
 import 'package:akababi/component/Button.dart';
 import 'package:akababi/component/Error.dart';
+import 'package:akababi/component/PasswordTextField.dart';
 import 'package:akababi/component/TextInput.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,6 +38,13 @@ class UserPass extends StatefulWidget {
 
 class _UserPassState extends State<UserPass> {
   bool isChecked = false;
+  bool isPasswordValide = false;
+  void setPasswordValide() {
+    setState(() {
+      isPasswordValide = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -51,6 +59,9 @@ class _UserPassState extends State<UserPass> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            SizedBox(
+              height: 150,
+            ),
             Text(
               "Enter relevant Information",
               style: TextStyle(
@@ -79,18 +90,16 @@ class _UserPassState extends State<UserPass> {
                       //     controller: phoneController,
                       //     hint: "Phone Number ",
                       //     isPass: false),
-                      SizedBox(
-                        height: 20,
-                      ),
                     ],
                   )
                 : Container(),
-            TextInput(
-                controller: widget.passwordController,
-                hint: !widget.isForForgetPassword
-                    ? "Enter password"
-                    : "New Password",
-                isPass: true),
+            PasswordTextField(
+              fun: setPasswordValide,
+              controller: widget.passwordController,
+              hint: !widget.isForForgetPassword
+                  ? "Enter password"
+                  : "New Password",
+            ),
             SizedBox(
               height: 20,
             ),
@@ -101,36 +110,39 @@ class _UserPassState extends State<UserPass> {
             SizedBox(
               height: 20,
             ),
-            Row(
-              children: [
-                Checkbox(
-                    value: isChecked,
-                    onChanged: (value) {
-                      setState(() {
-                        isChecked = value!;
-                      });
-                    }),
-                Text("i accept the "),
-                GestureDetector(
-                  onTap: () async {
-                    await Navigator.pushNamed(context, '/policy');
-                    BlocProvider.of<AuthBloc>(context).add(GetUserInfoEvent());
-                  },
-                  child: Text(
-                    "terms and conditions",
-                    style: TextStyle(
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline),
-                  ),
-                )
-              ],
-            ),
+            !widget.isForForgetPassword
+                ? Row(
+                    children: [
+                      Checkbox(
+                          value: isChecked,
+                          onChanged: (value) {
+                            setState(() {
+                              isChecked = value!;
+                            });
+                          }),
+                      Text("i accept the "),
+                      GestureDetector(
+                        onTap: () async {
+                          await Navigator.pushNamed(context, '/policy');
+                          BlocProvider.of<AuthBloc>(context)
+                              .add(GetUserInfoEvent());
+                        },
+                        child: Text(
+                          "terms and conditions",
+                          style: TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline),
+                        ),
+                      )
+                    ],
+                  )
+                : Container(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(),
                 Button(
-                    isEnabled: isChecked,
+                    isEnabled: isChecked || widget.isForForgetPassword,
                     func: widget.funPassForget != null
                         ? widget.funPassForget!
                         : widget.fun,

@@ -34,6 +34,9 @@ class CodeVerify extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            SizedBox(
+              height: 200,
+            ),
             Text(
               "Check your Gmail App to find varification code",
               style: TextStyle(

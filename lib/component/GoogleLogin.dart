@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
 class GoogleLogin extends StatelessWidget {
-  final void Function() func;
+  final Future<dynamic> Function() func;
   const GoogleLogin({super.key, required this.func});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: func,
+      onTap: () async {
+        await func();
+      },
       child: Container(
         width: 300,
         padding: EdgeInsets.symmetric(vertical: 5, horizontal: 30),

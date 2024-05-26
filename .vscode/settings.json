@@ -1,3 +1,5 @@
 {
-  "cmake.sourceDirectory": "/home/rick/dev/projects/akababi/akababi/linux"
+  "cmake.sourceDirectory": "/home/rick/dev/projects/akababi/akababi/linux",
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "java.compile.nullAnalysis.mode": "automatic"
 }

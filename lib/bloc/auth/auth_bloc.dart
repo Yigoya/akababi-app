@@ -7,8 +7,41 @@ import 'package:akababi/bloc/auth/auth_state.dart';
 import 'package:akababi/utility.dart';
 import 'package:akababi/model/User.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  trigerNotification(String title, String body) {
+    AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+      if (!isAllowed) {
+        AwesomeNotifications().requestPermissionToSendNotifications();
+      }
+    });
+    AwesomeNotifications().createNotification(
+        content: NotificationContent(
+            id: 10, channelKey: 'channelKey', title: title, body: body));
+  }
+
+  int _calculatePasswordStrength(String password) {
+    int strength = 0;
+    if (password.length >= 8) {
+      strength++;
+    }
+    if (password.contains(RegExp(r'[a-z]'))) {
+      strength++;
+    }
+    if (password.contains(RegExp(r'[A-Z]'))) {
+      strength++;
+    }
+    if (password.contains(RegExp(r'[0-9]'))) {
+      strength++;
+    }
+    if (password.contains(RegExp(r'[!@#$%^&*()]'))) {
+      strength++;
+    }
+    return strength;
+  }
+
   AuthRepo authRepo = AuthRepo();
   UserRepo userRepo = UserRepo();
   AuthBloc() : super(InitialState()) {
@@ -23,6 +56,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<NewPasswordEvent>(_newPassword);
     on<ProfileEvent>(_profileChange);
     on<LoadUserInfoEvent>(_loadUserInfo);
+    on<GetLocationEvent>(_getLocation);
   }
 
   Future<void> _initial(InitialEvent event, Emitter<AuthState> emit) async {
@@ -41,6 +75,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(GetInfoState(error: "confirm passoword error"));
       return;
     }
+    if (4 > _calculatePasswordStrength(event.password)) {
+      emit(GetInfoState(error: "passoword is Week"));
+      return;
+    }
     try {
       final response = await authRepo.signup(
           event.username,
@@ -55,7 +93,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       print(await authRepo.token);
 
       emit(SignUpState(response['token'], response['user']));
-      Navigator.pushNamedAndRemoveUntil(event.context, "/", (route) => false);
+      trigerNotification(
+          'Registration Success', 'The process of Registration is sucessfull');
+      await Navigator.pushNamedAndRemoveUntil(
+          event.context, "/", (route) => false);
     } catch (e) {
       if (e is DioException) {
         String error = handleDioError(e);
@@ -76,14 +117,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       print(await authRepo.token);
 
       emit(LoginState(response['token'], response['user']));
+      trigerNotification('Login Success', 'The process of Login is sucessfull');
+      await requestLocationPermission();
       Navigator.pushNamedAndRemoveUntil(event.context, "/", (route) => false);
     } catch (e) {
       if (e is DioException) {
         String error = handleDioError(e);
         print(error);
         emit(InitialState(error: error));
-        // final arg = {"type": ErrorType.noconnect, "msg": error};
-        // Navigator.pushNamed(event.context, '/error', arguments: arg);
       }
     }
   }
@@ -157,11 +198,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _newPassword(
       NewPasswordEvent event, Emitter<AuthState> emit) async {
-    emit(LoadingState());
-    if (event.password != event.confirm) {
+    if (event.password.isEmpty) {
+      emit(CodeVarifyState(error: "passoword required"));
+      return;
+    }
+    if ((event.password != event.confirm) || event.password.isEmpty) {
       print(event.password);
       print(event.confirm);
-      emit(InitialState(error: "confirm passoword error"));
+      emit(CodeVarifyState(error: "confirm passoword error"));
+      return;
+    }
+    if (4 > _calculatePasswordStrength(event.password)) {
+      print(_calculatePasswordStrength(event.password));
+      emit(CodeVarifyState(error: "passoword is Week"));
       return;
     }
     try {
@@ -171,6 +220,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       print(await authRepo.token);
 
       emit(SignUpState(response['token'], response['user']));
+      trigerNotification(
+          'Login Success', 'Password reset process is sucessfull');
       Navigator.pushNamedAndRemoveUntil(event.context, "/", (route) => false);
     } catch (e) {
       if (e is DioException) {
@@ -218,6 +269,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final arg = {"type": ErrorType.noconnect, "msg": error};
         Navigator.pushNamed(event.context, '/error', arguments: arg);
       }
+    }
+  }
+
+  Future<void> _getLocation(
+      GetLocationEvent event, Emitter<AuthState> emit) async {
+    // emit(LoadingState());
+    if (await requestLocationPermission()) {
+      final location = await getCurrentLocation();
+      print(location!.latitude);
     }
   }
 }

@@ -45,47 +45,52 @@ class _ForgetPasswordState extends State<ForgetPassword> {
   @override
   Widget build(BuildContext context) {
     final authBloc = BlocProvider.of<AuthBloc>(context);
-    return Scaffold(body: BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        print('sign in $state');
-        if (state is InitialState) {
-          print(state.error);
+    return Scaffold(body: SingleChildScrollView(
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          print('sign in $state');
+          if (state is InitialState) {
+            print(state.error);
 
-          return Email(
-            isLoading: state.isLoading,
-            emailController: emailController,
-            error: state.error,
-            isForForgetPassword: true,
-            fun: () => authBloc
-                .add(ForgetPassEmailVarifyEvent(emailController.text, context)),
-          );
-        } else if (state is LoadingState) {
-          return Center(child: const CircularProgressIndicator.adaptive());
-          // } else if (state is SignUpState) {
-          //   return Center(child: Text(state.token));
-        } else if (state is EmailVarifyState) {
-          return CodeVerify(
+            return Email(
               isLoading: state.isLoading,
-              error: state.error,
-              codeController: codeController,
               emailController: emailController,
-              fun: () => authBloc.add(CodeVarifyEvent(
-                  codeController.text, emailController.text, context)));
-        } else if (state is CodeVarifyState) {
-          return UserPass(
-              isLoading: state.isLoading,
               error: state.error,
               isForForgetPassword: true,
-              confirmController: confirmController,
-              passwordController: passwordController,
-              phoneController: phoneController,
-              usernameController: usernameController,
-              fun: () => authBloc.add(NewPasswordEvent(emailController.text,
-                  passwordController.text, confirmController.text, context)));
-        } else {
-          return Center(child: Text("error"));
-        }
-      },
+              fun: () => authBloc.add(
+                  ForgetPassEmailVarifyEvent(emailController.text, context)),
+            );
+          } else if (state is LoadingState) {
+            return Container(
+                height: 400,
+                child:
+                    Center(child: const CircularProgressIndicator.adaptive()));
+            // } else if (state is SignUpState) {
+            //   return Center(child: Text(state.token));
+          } else if (state is EmailVarifyState) {
+            return CodeVerify(
+                isLoading: state.isLoading,
+                error: state.error,
+                codeController: codeController,
+                emailController: emailController,
+                fun: () => authBloc.add(CodeVarifyEvent(
+                    codeController.text, emailController.text, context)));
+          } else if (state is CodeVarifyState) {
+            return UserPass(
+                isLoading: state.isLoading,
+                error: state.error,
+                isForForgetPassword: true,
+                confirmController: confirmController,
+                passwordController: passwordController,
+                phoneController: phoneController,
+                usernameController: usernameController,
+                fun: () => authBloc.add(NewPasswordEvent(emailController.text,
+                    passwordController.text, confirmController.text, context)));
+          } else {
+            return Center(child: Text("error"));
+          }
+        },
+      ),
     ));
   }
 }

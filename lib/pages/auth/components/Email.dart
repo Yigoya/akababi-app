@@ -100,7 +100,6 @@ class Email extends StatelessWidget {
               SizedBox(
                 height: 20,
               ),
-              GoogleLogin(func: () {}),
               SizedBox(
                 height: 10,
               ),

@@ -1,0 +1,24 @@
+part of 'people_cubit.dart';
+
+sealed class PeopleState {}
+
+final class PeopleInitial extends PeopleState {}
+
+final class PeopleLoading extends PeopleState {
+  final List<dynamic> peoples;
+
+  PeopleLoading({required this.peoples});
+}
+
+final class PeopleLoaded extends PeopleState {
+  final List<Map<String, dynamic>> peoples;
+
+  PeopleLoaded({required this.peoples});
+}
+
+final class SinglePeopleLoaded extends PeopleState {
+  final Map<String, dynamic> people;
+  final List<Map<String, dynamic>> peoples;
+
+  SinglePeopleLoaded(this.people, this.peoples);
+}

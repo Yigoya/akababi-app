@@ -1,14 +1,23 @@
+import 'package:akababi/pages/search/SearchPage.dart';
 import 'package:flutter/material.dart';
+import "package:flutter_feather_icons/flutter_feather_icons.dart";
 
-PreferredSizeWidget? AppHeader(BuildContext context) {
+PreferredSizeWidget? AppHeader(BuildContext context, String title) {
   return AppBar(
-    title: Text("title"),
+    title: Text(title),
     actions: [
       IconButton(
           onPressed: () {
-            Navigator.pushNamed(context, "/profile");
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => SearchPage()));
           },
-          icon: Icon(Icons.person))
+          icon: Icon(FeatherIcons.search)),
+      IconButton(
+          onPressed: () {
+            Navigator.of(context, rootNavigator: true)
+                .pushNamed("/notification");
+          },
+          icon: Icon(FeatherIcons.bell)),
     ],
   );
 }

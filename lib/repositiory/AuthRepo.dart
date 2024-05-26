@@ -6,7 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthRepo {
   final dio = Dio();
-  static String SERVER = 'http://192.168.115.17:3000';
+  // static String SERVER = 'http://192.168.12.1:3001';
+  static String SERVER = 'https://api1.myakababi.com';
 
   Future<User?> get user async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -18,6 +19,11 @@ class AuthRepo {
   Future<void> setUser(User user) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('user', jsonEncode(user.toMap()));
+  }
+
+  Future<void> removeUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user');
   }
 
   Future<void> setToken(String token) async {
@@ -40,6 +46,28 @@ class AuthRepo {
     print(res);
 
     return {'user': User.fromMap(res.data['user']), 'token': res.data['token']};
+  }
+
+  Future<User?> signinWithGoogle(
+      String id, String email, String fullname, String? imagePath) async {
+    try {
+      var first_name = fullname.split(' ')[0];
+      var last_name = fullname.split(' ')[1];
+      var data = {
+        'id': id,
+        'email': email,
+        'first_name': first_name,
+        'last_name': last_name,
+      };
+      final res = await dio.post(SERVER + "/user/signinWithGoogle", data: data);
+
+      print(res.data['user']);
+
+      return User.fromMap(res.data['user']);
+    } catch (err) {
+      print('Error $err');
+      return null;
+    }
   }
 
   // Future<Map<String, dynamic>> getProfile(String email, String password) async {

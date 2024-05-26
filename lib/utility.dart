@@ -1,4 +1,24 @@
 import 'package:dio/dio.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:geolocator/geolocator.dart';
+
+Future<bool> requestLocationPermission() async {
+  final locationStatus = await Permission.locationWhenInUse.request();
+  return locationStatus.isGranted;
+  // if (locationStatus.isGranted) {
+  //   print('Location permission granted');
+  // } else if (locationStatus.isDenied) {
+  //   print('Location permission denied');
+  // }
+}
+
+Future<Position?> getCurrentLocation() async {
+  final locationData = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+      forceAndroidLocationManager: true);
+  print(locationData.latitude);
+  return locationData;
+}
 
 String handleDioError(DioException error) {
   switch (error.type) {
@@ -21,9 +41,9 @@ String handleDioError(DioException error) {
 
 String _handleResponseError(Response response) {
   if (response.statusCode == 400) {
-    return response.data['msg'];
+    return response.data['message'] ?? response.data['msg'];
   } else if (response.statusCode == 404) {
-    return response.data['msg'];
+    return response.data['message'] ?? response.data['msg'];
   } else if (response.statusCode == 500) {
     return 'Internal server error';
   } else {

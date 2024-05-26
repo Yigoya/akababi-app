@@ -8,32 +8,108 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:logger/logger.dart';
 
 class UserRepo {
   final authRepo = AuthRepo();
   final dio = Dio();
+  final logger = Logger();
 
-  Future<User?> setProfilePic(int id) async {
+  Future<User?> setProfilePic(String filePath) async {
     try {
-      print("object");
       final _user = await authRepo.user;
-      String? filePath = await getImage();
-      print(filePath);
-      if (filePath != null) {
-        print(basename(filePath));
-        final file = await MultipartFile.fromFile(filePath,
-            filename: basename(filePath));
-        print(file);
-        Map<String, dynamic> data = {'file': file, 'id': id};
-        FormData formData = FormData.fromMap(data);
+      print(basename(filePath));
+      final file = await MultipartFile.fromFile(filePath,
+          filename: basename(filePath), contentType: MediaType('image', 'png'));
+      print(file);
+      Map<String, dynamic> data = {'file': file, 'id': _user!.id};
+      FormData formData = FormData.fromMap(data);
 
-        Response res = await dio
-            .put('${AuthRepo.SERVER}/user/uploadProfileImage', data: formData);
-        print(res.data['user']);
-        return User.fromMap(res.data['user']);
-      }
+      Response res = await dio.put('${AuthRepo.SERVER}/user/uploadProfileImage',
+          data: formData);
+      print(res.data);
+      return User.fromMap(res.data['user']);
     } catch (e) {
       print(e);
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getUserFriend() async {
+    try {
+      User? user = await authRepo.user;
+      var id = user!.id;
+      Response res = await dio.get('${AuthRepo.SERVER}/user/getUserFriend/$id');
+      List<dynamic> friends = res.data;
+      List<Map<String, dynamic>> friendList =
+          friends.map((friend) => friend as Map<String, dynamic>).toList();
+      return friendList;
+    } catch (e) {
+      print(e);
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getUserPost() async {
+    try {
+      User? user = await authRepo.user;
+      var id = user!.id;
+      Response res = await dio.get('${AuthRepo.SERVER}/user/getUserPost/$id');
+      List<dynamic> posts = res.data;
+      List<Map<String, dynamic>> postList =
+          posts.map((post) => post as Map<String, dynamic>).toList();
+      return postList;
+    } catch (e) {
+      print(e);
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getUserLikedPost() async {
+    try {
+      User? user = await authRepo.user;
+      var id = user!.id;
+      Response res =
+          await dio.get('${AuthRepo.SERVER}/user/getUserLikedPost/$id');
+      List<dynamic> likedPosts = res.data;
+      List<Map<String, dynamic>> likedPostList =
+          likedPosts.map((post) => post as Map<String, dynamic>).toList();
+      return likedPostList;
+    } catch (e) {
+      print(e);
+      return [];
+    }
+  }
+
+// write a function for getUserFriend in 'getUserFriend/:id' and return in List<Map<String, dynamic>> type
+
+  Future<User?> editProfile(
+      String first_name,
+      String last_name,
+      String username,
+      String bio,
+      String phonenumber,
+      String gender,
+      String birthday) async {
+    try {
+      final _user = await authRepo.user;
+      Map<String, dynamic> data = {
+        'id': _user!.id,
+        'first_name': first_name,
+        'last_name': last_name,
+        'username': username,
+        'bio': bio,
+        'phonenumber': phonenumber,
+        'gender': gender,
+        'birthday': birthday,
+      };
+      Response res =
+          await dio.put('${AuthRepo.SERVER}/user/editProfile', data: data);
+      print(res.data['user']);
+      return User.fromMap(res.data['user']);
+    } catch (e) {
+      print(e);
+      return null;
     }
   }
 
@@ -42,22 +118,14 @@ class UserRepo {
     final file = await picker.pickImage(source: ImageSource.gallery);
     print(file);
     if (file != null) {
-      // await setProfilePic();
       final savedImage = await _saveLocally(File(file.path));
       return file.path;
-      // return savedImage.path;
     }
   }
 
   Future<void> pickFile() async {
     final file = await FilePicker.platform.pickFiles();
-    if (file != null) {
-      // setState(() {
-      //   _file = File(file.files.first.path!);
-      //   filetype = 'file';
-      //   filePath = file.files.first.path!;
-      // });
-    }
+    if (file != null) {}
   }
 
   Future<File> _saveLocally(File image) async {

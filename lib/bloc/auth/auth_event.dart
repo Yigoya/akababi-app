@@ -62,6 +62,10 @@ class BackEvent extends AuthEvent {
   BackEvent();
 }
 
+class GetLocationEvent extends AuthEvent {
+  GetLocationEvent();
+}
+
 class LoadUserInfoEvent extends AuthEvent {
   BuildContext context;
   LoadUserInfoEvent(this.context);
@@ -70,4 +74,9 @@ class LoadUserInfoEvent extends AuthEvent {
 class ProfileEvent extends AuthEvent {
   BuildContext context;
   ProfileEvent(this.context);
+}
+
+class LogOutEvent extends AuthEvent {
+  BuildContext context;
+  LogOutEvent(this.context);
 }

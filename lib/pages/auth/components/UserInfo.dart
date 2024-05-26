@@ -42,6 +42,9 @@ class _UserInfoState extends State<UserInfo> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            SizedBox(
+              height: 200,
+            ),
             Text(
               "Enter relevant Information",
               style: TextStyle(
@@ -66,10 +69,21 @@ class _UserInfoState extends State<UserInfo> {
             SizedBox(
               height: 20,
             ),
-            TextInput(
-                controller: widget.birthController,
-                hint: "Enter birth date dd/mm/yyyy",
-                isPass: false),
+            TextField(
+              onTap: () {
+                _selectDate();
+              },
+              readOnly: true,
+              controller: widget.birthController,
+              decoration: InputDecoration(
+                  labelText: 'BIRTH DATE',
+                  filled: true,
+                  prefixIcon: Icon(Icons.calendar_today),
+                  enabledBorder:
+                      OutlineInputBorder(borderSide: BorderSide.none),
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue))),
+            ),
             SizedBox(
               height: 20,
             ),
@@ -120,5 +134,18 @@ class _UserInfoState extends State<UserInfo> {
         ),
       ),
     );
+  }
+
+  Future<void> _selectDate() async {
+    DateTime? _picked = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(2000),
+        lastDate: DateTime(2100));
+    if (_picked != null) {
+      setState(() {
+        widget.birthController.text = _picked.toString().split(" ")[0];
+      });
+    }
   }
 }

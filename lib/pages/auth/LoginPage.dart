@@ -1,4 +1,6 @@
+import 'package:akababi/api/google_signin_api.dart';
 import 'package:akababi/component/Error.dart';
+import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:akababi/bloc/auth/auth_bloc.dart';
@@ -8,6 +10,7 @@ import 'package:akababi/component/Button.dart';
 import 'package:akababi/component/GoogleLogin.dart';
 import 'package:akababi/component/OptionText.dart';
 import 'package:akababi/component/TextInput.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
@@ -85,7 +88,7 @@ class LoginPage extends StatelessWidget {
                       SizedBox(
                         height: 20,
                       ),
-                      GoogleLogin(func: () {}),
+                      GoogleLogin(func: () => signIn(context)),
                       SizedBox(
                         height: 10,
                       ),
@@ -120,5 +123,33 @@ class LoginPage extends StatelessWidget {
         }
       },
     ));
+  }
+
+  Future signIn(BuildContext context) async {
+    AuthRepo authRepo = AuthRepo();
+    await GoogleSignIn().signOut();
+    GoogleSignInAccount? _googleSignIn = await GoogleSignIn().signIn();
+
+    if (_googleSignIn != null) {
+      print('###############');
+      print(_googleSignIn.email);
+      final auth = await _googleSignIn.authentication;
+      try {
+        final user = await authRepo.signinWithGoogle(
+            _googleSignIn.id,
+            _googleSignIn.email,
+            _googleSignIn.displayName!,
+            _googleSignIn.photoUrl);
+        final res = await authRepo.setUser(user!);
+      } catch (err) {
+        print('The error $err');
+      }
+      Navigator.pushNamed(context, '/');
+    } else {
+      print(
+          '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2');
+      // print(auth.accessToken);
+      print(_googleSignIn!.photoUrl);
+    }
   }
 }

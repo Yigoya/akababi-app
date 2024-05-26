@@ -49,57 +49,59 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     final authBloc = BlocProvider.of<AuthBloc>(context);
-    return Scaffold(body: BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        print('sign in $state');
-        if (state is InitialState) {
-          print(state.isLoading);
+    return Scaffold(body: SingleChildScrollView(
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          print('sign in $state');
+          if (state is InitialState) {
+            print(state.isLoading);
 
-          return Email(
-            isLoading: state.isLoading,
-            error: state.error,
-            emailController: emailController,
-            fun: () =>
-                authBloc.add(EmailVarifyEvent(emailController.text, context)),
-          );
-        } else if (state is EmailVarifyState) {
-          return CodeVerify(
+            return Email(
               isLoading: state.isLoading,
               error: state.error,
-              codeController: codeController,
               emailController: emailController,
-              fun: () => authBloc.add(CodeVarifyEvent(
-                  codeController.text, emailController.text, context)));
-        } else if (state is CodeVarifyState) {
-          return UserInfo(
-              fnController: fnController,
-              lnController: lnController,
-              birthController: birthController,
-              fun: () => authBloc.add(GetUserInfoEvent()));
-        } else if (state is GetInfoState) {
-          return UserPass(
-              isLoading: state.isLoading,
-              error: state.error,
-              confirmController: confirmController,
-              passwordController: passwordController,
-              phoneController: phoneController,
-              usernameController: usernameController,
-              fun: () => authBloc.add(SignUpEvent(
-                  usernameController.text,
-                  fnController.text,
-                  lnController.text,
-                  emailController.text,
-                  phoneController.text,
-                  passwordController.text,
-                  confirmController.text,
-                  genderValue,
-                  birthController.text,
-                  context)));
-        } else {
-          authBloc.add(InitialEvent());
-          return Center(child: Text("error"));
-        }
-      },
+              fun: () =>
+                  authBloc.add(EmailVarifyEvent(emailController.text, context)),
+            );
+          } else if (state is EmailVarifyState) {
+            return CodeVerify(
+                isLoading: state.isLoading,
+                error: state.error,
+                codeController: codeController,
+                emailController: emailController,
+                fun: () => authBloc.add(CodeVarifyEvent(
+                    codeController.text, emailController.text, context)));
+          } else if (state is CodeVarifyState) {
+            return UserInfo(
+                fnController: fnController,
+                lnController: lnController,
+                birthController: birthController,
+                fun: () => authBloc.add(GetUserInfoEvent()));
+          } else if (state is GetInfoState) {
+            return UserPass(
+                isLoading: state.isLoading,
+                error: state.error,
+                confirmController: confirmController,
+                passwordController: passwordController,
+                phoneController: phoneController,
+                usernameController: usernameController,
+                fun: () => authBloc.add(SignUpEvent(
+                    usernameController.text,
+                    fnController.text,
+                    lnController.text,
+                    emailController.text,
+                    phoneController.text,
+                    passwordController.text,
+                    confirmController.text,
+                    genderValue,
+                    birthController.text,
+                    context)));
+          } else {
+            authBloc.add(InitialEvent());
+            return Center(child: Text("error"));
+          }
+        },
+      ),
     ));
   }
 }
