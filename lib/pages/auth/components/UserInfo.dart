@@ -42,7 +42,7 @@ class _UserInfoState extends State<UserInfo> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
+            const SizedBox(
               height: 200,
             ),
             Text(
@@ -52,21 +52,21 @@ class _UserInfoState extends State<UserInfo> {
                   color: Colors.black.withOpacity(0.5),
                   fontWeight: FontWeight.bold),
             ),
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
             TextInput(
                 controller: widget.fnController,
                 hint: "First name ",
                 isPass: false),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             TextInput(
                 controller: widget.lnController,
                 hint: "Last Name ",
                 isPass: false),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             TextField(
@@ -75,7 +75,7 @@ class _UserInfoState extends State<UserInfo> {
               },
               readOnly: true,
               controller: widget.birthController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                   labelText: 'BIRTH DATE',
                   filled: true,
                   prefixIcon: Icon(Icons.calendar_today),
@@ -84,7 +84,7 @@ class _UserInfoState extends State<UserInfo> {
                   focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.blue))),
             ),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             SizedBox(
@@ -93,7 +93,7 @@ class _UserInfoState extends State<UserInfo> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
+                  const Text(
                     "male: ",
                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
                   ),
@@ -107,7 +107,7 @@ class _UserInfoState extends State<UserInfo> {
                       });
                     },
                   ),
-                  Text("female: ",
+                  const Text("female: ",
                       style:
                           TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
                   Radio<Gender>(
@@ -137,14 +137,14 @@ class _UserInfoState extends State<UserInfo> {
   }
 
   Future<void> _selectDate() async {
-    DateTime? _picked = await showDatePicker(
+    DateTime? picked = await showDatePicker(
         context: context,
         initialDate: DateTime.now(),
         firstDate: DateTime(2000),
         lastDate: DateTime(2100));
-    if (_picked != null) {
+    if (picked != null) {
       setState(() {
-        widget.birthController.text = _picked.toString().split(" ")[0];
+        widget.birthController.text = picked.toString().split(" ")[0];
       });
     }
   }

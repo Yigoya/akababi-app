@@ -20,16 +20,16 @@ class PersonContainer extends StatelessWidget {
       child:
           Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Container(
-          child: Text(
+          child: const Text(
             "data",
             style: TextStyle(color: Colors.white),
           ),
         ),
         Container(
             height: 50,
-            padding: EdgeInsets.all(5),
+            padding: const EdgeInsets.all(5),
             decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(15),
                     bottomRight: Radius.circular(15)),
                 color: Colors.black.withOpacity(0.5)),
@@ -38,18 +38,18 @@ class PersonContainer extends StatelessWidget {
               children: [
                 Text(
                   data['first_name'],
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 17),
                 ),
                 GestureDetector(
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(4),
                         color: Colors.red),
-                    child: Text(
+                    child: const Text(
                       'Follow',
                       style: TextStyle(color: Colors.white),
                     ),

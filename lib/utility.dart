@@ -1,25 +1,313 @@
+import 'dart:convert';
+
+import 'package:akababi/pages/post/SinglePostPage.dart';
+import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+Position defaultLocation = Position(
+  longitude: 38.7781448, // Example longitude value
+  latitude: 8.9631768, // Example latitude value
+  timestamp: DateTime.now(), // Current timestamp
+  accuracy: 0.0, // Example accuracy value
+  altitude: 0.0, // Example altitude value
+  altitudeAccuracy: 0.0, // Example altitude accuracy value
+  heading: 0.0, // Example heading value
+  headingAccuracy: 0.0, // Example heading accuracy value
+  speed: 0.0, // Example speed value
+  speedAccuracy: 0.0, // Example speed accuracy value
+);
+
+/// Opens Google Maps with the specified latitude and longitude.
+///
+/// This function generates a Google Maps URL using the provided latitude and longitude,
+/// and attempts to launch the URL. If the URL can be launched, Google Maps will be opened
+/// with the specified location. If the URL cannot be launched, an exception will be thrown.
+///
+/// Example usage:
+/// ```dart
+/// openGoogleMaps(37.7749, -122.4194);
+/// ```
+void openGoogleMaps(double latitude, double longitude) async {
+  final String googleMapsUrl =
+      'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+
+  if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+    await launchUrl(Uri.parse(googleMapsUrl));
+  } else {
+    throw 'Could not launch $googleMapsUrl';
+  }
+}
+
+/// Builds a list item widget for displaying a post.
+///
+/// The [listItem] function takes in a [BuildContext] and a [Map] of post data.
+/// It decodes the media from the post data and determines the appropriate image path based on the media type.
+/// It then returns a [GestureDetector] widget wrapped in a [Stack] widget, displaying the post image and an icon indicating the media type.
+///
+/// The [onTap] callback is triggered when the list item is tapped, and it navigates to the [SinglePostPage] for the corresponding post.
+///
+/// Example usage:
+/// ```dart
+/// Widget postItem = listItem(context, post);
+/// ```
+Widget listItem(BuildContext context, Map<String, dynamic> post) {
+  Map<String, dynamic> media = decodeMedia(post['media']);
+  print(post);
+  var isVideo = media['video'] != null;
+  var isAudio = media['audio'] != null;
+  var isOther = media['other'] != null;
+  var imagePath;
+  if (isVideo) {
+    imagePath = media['thumbnail'];
+  } else if (isAudio) {
+    imagePath = 'assets/image/audio.jpg';
+  } else if (isOther) {
+    imagePath = 'assets/image/file.jpg';
+  } else {
+    imagePath = media['image'];
+  }
+  isVideo ? media['thumbnail'] : media['image'];
+  return GestureDetector(
+    onTap: () {
+      print(post['id']);
+      Navigator.of(context, rootNavigator: true).push(MaterialPageRoute(
+          builder: (context) => SinglePostPage(
+                id: post['id'],
+              )));
+    },
+    child: Stack(
+      children: [
+        Container(
+          child: Image(
+            image: isOther || isAudio
+                ? AssetImage(imagePath)
+                : NetworkImage('${AuthRepo.SERVER}/$imagePath')
+                    as ImageProvider<Object>,
+            fit: BoxFit.cover,
+          ),
+        ),
+        Positioned(
+          top: 4,
+          right: 4,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Icon(
+              isVideo
+                  ? Icons.ondemand_video
+                  : isAudio
+                      ? Icons.audio_file_outlined
+                      : isOther
+                          ? Icons.file_copy
+                          : Icons.image,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Decodes the given [media] object into a [Map<String, dynamic>].
+///
+/// If the application is running on the server, the [media] object is expected
+/// to be a JSON string, which will be decoded using [jsonDecode] and returned
+/// as a [Map<String, dynamic>]. Otherwise, if the application is running on
+/// the client, the [media] object is expected to be a [Map<String, dynamic>]
+/// and will be returned as is.
+///
+/// Returns the decoded [Map<String, dynamic>] representation of the [media]
+/// object.
+Map<String, dynamic> decodeMedia(dynamic media) {
+  if (AuthRepo.isServer) {
+    return jsonDecode(media);
+  } else {
+    return media as Map<String, dynamic>;
+  }
+}
+
+/// Requests the location permission and returns a boolean indicating whether the permission is granted or not.
+///
+/// This function uses the `Permission.locationWhenInUse` package to request the location permission.
+/// It returns `true` if the permission is granted, and `false` otherwise.
 Future<bool> requestLocationPermission() async {
   final locationStatus = await Permission.locationWhenInUse.request();
   return locationStatus.isGranted;
-  // if (locationStatus.isGranted) {
-  //   print('Location permission granted');
-  // } else if (locationStatus.isDenied) {
-  //   print('Location permission denied');
-  // }
 }
 
-Future<Position?> getCurrentLocation() async {
-  final locationData = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-      forceAndroidLocationManager: true);
-  print(locationData.latitude);
-  return locationData;
+/// Shows a dialog to prompt the user to enable location services.
+///
+/// This function displays an [AlertDialog] with a title and content
+/// informing the user that location services are disabled on their device.
+/// It provides two actions: "Cancel" and "Settings". Tapping "Cancel"
+/// dismisses the dialog, while tapping "Settings" opens the device's
+/// location settings.
+///
+/// The [context] parameter is the [BuildContext] of the current widget.
+/// It is used to show the dialog.
+///
+/// Example usage:
+/// ```dart
+/// _showLocationServiceDialog(context);
+/// ```
+Future<void> _showLocationServiceDialog(BuildContext context) async {
+  showDialog<void>(
+    context: context,
+    barrierDismissible:
+        false, // Prevent dismissing the dialog by tapping outside
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Location Services Disabled'),
+        content:
+            Text('Please enable location services in your device settings.'),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text('Settings'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              Geolocator.openLocationSettings();
+            },
+          ),
+        ],
+      );
+    },
+  );
 }
 
+/// Waits for the location service to be enabled within the specified [timeout].
+///
+/// Returns a [Future] that completes with a boolean value indicating whether the location service was enabled or not.
+/// If the location service is enabled before the [timeout] duration expires, the future completes with `true`.
+/// If the [timeout] duration expires and the location service is still not enabled, the future completes with `false`.
+///
+/// The [timeout] parameter specifies the maximum duration to wait for the location service to be enabled.
+/// If the location service is not enabled within this duration, the future completes with `false`.
+///
+/// This method periodically checks if the location service is enabled using the [Geolocator.isLocationServiceEnabled] method.
+/// It waits for 1 second before checking again.
+///
+/// Example usage:
+/// ```dart
+/// bool locationServiceEnabled = await _waitForLocationServiceEnable(timeout: Duration(seconds: 10));
+/// if (locationServiceEnabled) {
+///   // Location service is enabled
+/// } else {
+///   // Location service is not enabled within the specified timeout
+/// }
+/// ```
+Future<bool> _waitForLocationServiceEnable({required Duration timeout}) async {
+  DateTime endTime = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(endTime)) {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (serviceEnabled) {
+      return true; // User enabled location services
+    }
+    await Future.delayed(
+        Duration(seconds: 1)); // Wait for 1 second before checking again
+  }
+  return false; // Timeout reached, user did not enable location services
+}
+
+/// Retrieves the current location of the device.
+///
+/// This function requests the necessary location permission from the user and
+/// checks if the location service is enabled. If the service is disabled, it
+/// prompts the user to enable it. If the user does not enable the service within
+/// the specified timeout, a snackbar is shown with a message indicating that
+/// location services are still disabled.
+///
+/// If the permission is granted and the location service is enabled, the function
+/// uses the Geolocator package to retrieve the current position with high accuracy.
+/// If an error occurs during the process, the function returns a default location.
+///
+/// If the permission is denied, the function returns a default location.
+///
+/// If the permission is permanently denied, the function opens the app settings
+/// to allow the user to manually enable the location permission.
+///
+/// Returns the current position as a [Position] object, or the default location
+/// if an error occurs or the permission is denied.
+Future<Position?> getCurrentLocation(BuildContext context) async {
+  PermissionStatus permission = await Permission.location.request();
+
+  if (permission.isGranted) {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        await _showLocationServiceDialog(context);
+        bool userEnabledService =
+            await _waitForLocationServiceEnable(timeout: Duration(seconds: 30));
+
+        if (!userEnabledService) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    'Location services are still disabled. Please enable them to proceed.')),
+          );
+
+          return defaultLocation;
+        }
+      }
+      final locationData = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+          forceAndroidLocationManager: true);
+      print(locationData.latitude);
+
+      return locationData;
+    } catch (e) {
+      return defaultLocation;
+    }
+  } else if (permission.isDenied) {
+    return defaultLocation;
+  } else if (permission.isPermanentlyDenied) {
+    openAppSettings();
+    return defaultLocation;
+  }
+  return defaultLocation;
+}
+
+// Future<Position?> getCurrentLocation() async {
+//   _checkPermission();
+//   if (await requestLocationPermission()) {
+//     final locationData = await Geolocator.getCurrentPosition(
+//         desiredAccuracy: LocationAccuracy.high,
+//         forceAndroidLocationManager: true);
+//     print(locationData.latitude);
+//     return locationData;
+//   } else {
+//     return Position(
+//       longitude: 38.7781448, // Example longitude value
+//       latitude: 8.9631768, // Example latitude value
+//       timestamp: DateTime.now(), // Current timestamp
+//       accuracy: 0.0, // Example accuracy value
+//       altitude: 0.0, // Example altitude value
+//       altitudeAccuracy: 0.0, // Example altitude accuracy value
+//       heading: 0.0, // Example heading value
+//       headingAccuracy: 0.0, // Example heading accuracy value
+//       speed: 0.0, // Example speed value
+//       speedAccuracy: 0.0, // Example speed accuracy value
+//     );
+//   }
+// }
+
+/// Handles the DioException and returns an appropriate error message based on the error type.
+///
+/// The [error] parameter is the DioException that occurred.
+/// Returns a string representing the error message.
 String handleDioError(DioException error) {
   switch (error.type) {
     case DioExceptionType.connectionError:
@@ -39,16 +327,18 @@ String handleDioError(DioException error) {
   }
 }
 
+/// Handles the response error and returns an error message.
+///
+/// If the response contains a 'message' key, it is returned as the error message.
+/// If the response contains a 'msg' key, it is returned as the error message.
+/// If neither 'message' nor 'msg' keys are present, a default error message is returned
+/// with the HTTP status code of the response.
+///
+/// Returns the error message.
 String _handleResponseError(Response response) {
-  if (response.statusCode == 400) {
-    return response.data['message'] ?? response.data['msg'];
-  } else if (response.statusCode == 404) {
-    return response.data['message'] ?? response.data['msg'];
-  } else if (response.statusCode == 500) {
-    return 'Internal server error';
-  } else {
-    return 'Error: ${response.statusCode}';
-  }
+  return response.data['message'] ??
+      response.data['msg'] ??
+      'Error occured please try again later ${response.statusCode}';
 }
 
 enum ErrorType { timeout, noconnect, pagenotfound }

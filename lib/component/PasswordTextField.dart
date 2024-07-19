@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 
+/// A custom text field widget for entering passwords.
 class PasswordTextField extends StatefulWidget {
   final String hint;
   final void Function() fun;
   final TextEditingController controller;
 
-  const PasswordTextField(
-      {Key? key,
-      required this.controller,
-      required this.hint,
-      required this.fun})
-      : super(key: key);
+  /// Creates a [PasswordTextField] widget.
+  ///
+  /// The [controller], [hint], and [fun] parameters are required.
+  const PasswordTextField({
+    Key? key,
+    required this.controller,
+    required this.hint,
+    required this.fun,
+  }) : super(key: key);
 
   @override
   State<PasswordTextField> createState() => _PasswordTextFieldState();
@@ -20,24 +24,28 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
   int strength = 0;
   bool showRules = false;
   bool obscureText = true;
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         Container(
-          padding: EdgeInsets.only(left: 15, right: 0),
+          padding: const EdgeInsets.only(left: 15, right: 0),
           decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.5),
-                  offset: Offset(0, 1),
-                  blurRadius: 1,
-                )
-              ],
-              border:
-                  Border.all(color: Colors.black.withOpacity(0.7), width: 1),
-              borderRadius: BorderRadius.circular(10)),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.5),
+                offset: const Offset(0, 1),
+                blurRadius: 1,
+              ),
+            ],
+            border: Border.all(
+              color: Colors.black.withOpacity(0.7),
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
           child: TextField(
             controller: widget.controller,
             obscureText: obscureText,
@@ -45,7 +53,7 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
             autocorrect: false,
             decoration: InputDecoration(
               border: InputBorder.none,
-              hintStyle: TextStyle(fontSize: 15),
+              hintStyle: const TextStyle(fontSize: 15),
               hintText: widget.hint,
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -78,10 +86,20 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
     );
   }
 
+  /// Returns an [Icon] based on the strength of the password.
+  ///
+  /// The strength parameter represents the strength of the password, with a value
+  /// less than 3 indicating a weak password, a value less than 5 indicating a
+  /// moderate password, and any other value indicating a strong password.
+  ///
+  /// Returns an [Icon] widget with different colors based on the strength of the
+  /// password. A strength less than 3 will return a warning icon with red color,
+  /// a strength less than 5 will return a security icon with orange color, and
+  /// any other strength will return a check circle icon with green color.
   Icon _getStrengthIcon(int strength) {
     if (strength < 3) {
       return const Icon(Icons.warning, color: Colors.red);
-    } else if (strength < 4) {
+    } else if (strength < 5) {
       return const Icon(Icons.security, color: Colors.orange);
     } else {
       // widget.fun();
@@ -89,20 +107,33 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
     }
   }
 
+  /// Builds a widget that displays password rules.
+  ///
+  /// This method returns a [Container] widget containing a [Card] widget with padding.
+  /// Inside the [Card], a [Column] widget is used to display the password rules.
+  /// The rules include:
+  /// - At least 8 characters long
+  /// - At least one lowercase letter (a-z)
+  /// - At least one uppercase letter (A-Z)
+  /// - At least one number (0-9)
+  /// - At least one special character (!@#\$%^&*)
+  ///
+  /// Returns:
+  ///   A widget that displays password rules.
   Widget _buildPasswordRules() {
     return Container(
-      child: Card(
+      child: const Card(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: EdgeInsets.all(8.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 "Password Rules:",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 4.0),
+              SizedBox(height: 4.0),
               Text("- At least 8 characters long"),
               Text("- At least one lowercase letter (a-z)"),
               Text("- At least one uppercase letter (A-Z)"),
@@ -115,6 +146,16 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
     );
   }
 
+  /// Calculates the strength of a password based on certain criteria.
+  ///
+  /// The strength of the password is determined by the following criteria:
+  /// - The password length should be at least 8 characters.
+  /// - The password should contain at least one lowercase letter.
+  /// - The password should contain at least one uppercase letter.
+  /// - The password should contain at least one digit.
+  /// - The password should contain at least one special character.
+  ///
+  /// Returns the strength of the password as an integer value.
   int _calculatePasswordStrength(String password) {
     int strength = 0;
     if (password.length >= 8) {
@@ -129,7 +170,8 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
     if (password.contains(RegExp(r'[0-9]'))) {
       strength++;
     }
-    if (password.contains(RegExp(r'[!@#$%^&*()]'))) {
+    if (password
+        .contains(RegExp(r'''[!@#$%^&*(),.?":{}|<>+÷_=[\];\-\\\/`~']'''))) {
       strength++;
     }
     return strength;

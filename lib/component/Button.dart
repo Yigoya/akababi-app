@@ -15,15 +15,15 @@ class Button extends StatelessWidget {
     return GestureDetector(
       onTap: isEnabled ? func : null,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(35),
             color: isEnabled
-                ? Color.fromARGB(255, 247, 114, 25)
+                ? const Color.fromARGB(255, 247, 114, 25)
                 : Colors.black.withOpacity(0.3)),
         child: Text(
           text,
-          style: TextStyle(
+          style: const TextStyle(
               color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
         ),
       ),

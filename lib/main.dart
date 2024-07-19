@@ -1,39 +1,53 @@
+import 'dart:async';
+
 import 'package:akababi/bloc/auth/auth_bloc.dart';
 import 'package:akababi/bloc/cubit/notification_cubit.dart';
+import 'package:akababi/bloc/cubit/person_cubit.dart';
 import 'package:akababi/bloc/cubit/post_cubit.dart';
 import 'package:akababi/bloc/cubit/search_cubit.dart';
+import 'package:akababi/bloc/cubit/single_post_cubit.dart';
 import 'package:akababi/pages/Nearme/Nearme.dart';
 import 'package:akababi/bloc/cubit/people_cubit.dart';
 import 'package:akababi/pages/feed/FeedPage.dart';
 import 'package:akababi/pages/chat/ChatPage.dart';
 import 'package:akababi/pages/post/PostPage.dart';
+import 'package:akababi/pages/post/SinglePostPage.dart';
 import 'package:akababi/pages/profile/ProfilePage.dart';
+import 'package:akababi/pages/profile/UserProfile.dart';
 import 'package:akababi/pages/profile/cubit/picture_cubit.dart';
 import 'package:akababi/pages/profile/cubit/profile_cubit.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/route.dart';
-import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
+import 'package:uni_links/uni_links.dart';
 
-String initialRoute = '/';
+String initialRoute = '/login';
 
-Future<void> checkExist() async {
+// Future<void> checkExist() async {
+//   final authRepo = AuthRepo();
+//   final user = await authRepo.user;
+//   if (user == null) {
+//     initialRoute = '/login';
+//   }
+// }
+
+Future<bool> checkExist() async {
   final authRepo = AuthRepo();
   final user = await authRepo.user;
-  if (user == null) {
-    initialRoute = '/login';
+  if (user != null) {
+    return true;
   }
+  return false;
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await requestLocationPermission();
-
-  // await getCurrentLocation();
+  await Permission.location.request();
   AwesomeNotifications().initialize(
     null,
     [
@@ -50,12 +64,79 @@ void main() async {
       AwesomeNotifications().requestPermissionToSendNotifications();
     }
   });
-  await checkExist();
-  runApp(const MyApp());
+  bool isExist = await checkExist();
+  runApp(MyApp(isExist: isExist));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  final bool isExist;
+  const MyApp({super.key, required this.isExist});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+/// The state class for the root widget of the application.
+class _MyAppState extends State<MyApp> {
+  late StreamSubscription<String?> _sub;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinkListener();
+    _handleInitialLink();
+  }
+
+  @override
+  void dispose() {
+    _sub.cancel();
+    super.dispose();
+  }
+
+  /// Initializes the deep link listener.
+  void _initDeepLinkListener() {
+    _sub = linkStream.listen((String? link) {
+      if (link != null) {
+        _handleDeepLink(link);
+      }
+    }, onError: (err) {
+      print('Failed to receive link: $err');
+    });
+  }
+
+  /// Handles the initial deep link when the app is launched.
+  Future<void> _handleInitialLink() async {
+    try {
+      final initialLink = await getInitialLink();
+      if (initialLink != null) {
+        _handleDeepLink(initialLink);
+      }
+    } catch (e) {
+      print('Failed to receive initial link: $e');
+    }
+  }
+
+  /// Handles a deep link by parsing the link and navigating to the appropriate page.
+  void _handleDeepLink(String link) {
+    Uri uri = Uri.parse(link);
+    if (uri.pathSegments.length == 2) {
+      String type = uri.pathSegments[0];
+      String id = uri.pathSegments[1];
+      print(type == 'post');
+      if (type == 'post') {
+        _navigatorKey.currentState?.push(
+          MaterialPageRoute(
+              builder: (context) => SinglePostPage(id: int.parse(id))),
+        );
+      } else if (type == 'user') {
+        _navigatorKey.currentState?.push(MaterialPageRoute(
+            builder: (context) => UserProfile(
+                  id: int.parse(id),
+                )));
+      }
+    }
+  }
 
   // This widget is the root of your application.
   @override
@@ -66,12 +147,16 @@ class MyApp extends StatelessWidget {
           BlocProvider<PictureCubit>(create: ((context) => PictureCubit())),
           BlocProvider<ProfileCubit>(create: ((context) => ProfileCubit())),
           BlocProvider<PeopleCubit>(create: ((context) => PeopleCubit())),
+          BlocProvider<PersonCubit>(create: ((context) => PersonCubit())),
           BlocProvider<SearchCubit>(create: ((context) => SearchCubit())),
           BlocProvider<PostCubit>(create: ((context) => PostCubit())),
+          BlocProvider<SinglePostCubit>(
+              create: ((context) => SinglePostCubit())),
           BlocProvider<NotificationCubit>(
               create: ((context) => NotificationCubit())),
         ],
         child: MaterialApp(
+          navigatorKey: _navigatorKey,
           debugShowCheckedModeBanner: false,
           title: 'Flutter Demo',
           theme: ThemeData(
@@ -79,11 +164,15 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
           ),
           onGenerateRoute: generateRoute,
-          initialRoute: initialRoute,
+          initialRoute: widget.isExist ? '/' : '/login',
         ));
   }
 }
 
+/// The home page of the application.
+///
+/// This widget represents the main screen of the application.
+/// It is a stateful widget that creates a corresponding state class [_HomePageState].
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -91,8 +180,9 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+/// The state class for the [HomePage] widget.
 class _HomePageState extends State<HomePage> {
-  PersistentTabController _controller =
+  final PersistentTabController _controller =
       PersistentTabController(initialIndex: 0);
 
   @override
@@ -118,12 +208,12 @@ class _HomePageState extends State<HomePage> {
       ),
       popAllScreensOnTapOfSelectedTab: true,
       popActionScreens: PopActionScreensType.all,
-      itemAnimationProperties: ItemAnimationProperties(
+      itemAnimationProperties: const ItemAnimationProperties(
         // Navigation Bar's items animation properties.
         duration: Duration(milliseconds: 200),
         curve: Curves.ease,
       ),
-      screenTransitionAnimation: ScreenTransitionAnimation(
+      screenTransitionAnimation: const ScreenTransitionAnimation(
         // Screen transition animation on change of selected tab.
         animateTabTransition: true,
         curve: Curves.ease,
@@ -133,26 +223,40 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Builds a list of screens to be displayed in the application.
+  ///
+  /// Returns a list of [Widget] objects representing the screens.
   List<Widget> _buildScreens() {
-    return [FeedPage(), NearMePage(), PostPage(), ChatPage(), ProfilePage()];
+    return [
+      const FeedPage(),
+      NearMePage(),
+      const PostPage(),
+      const ChatPage(),
+      const ProfilePage()
+    ];
   }
 
+  /// Returns a list of [PersistentBottomNavBarItem] objects.
+  ///
+  /// Each [PersistentBottomNavBarItem] represents an item in the persistent
+  /// bottom navigation bar. It contains an icon, a title, and primary colors
+  /// for both active and inactive states.
   List<PersistentBottomNavBarItem> _navBarsItems() {
     return [
       PersistentBottomNavBarItem(
-        icon: Icon(FeatherIcons.home),
+        icon: const Icon(FeatherIcons.home),
         title: ("Home"),
         activeColorPrimary: Colors.white,
         inactiveColorPrimary: Colors.grey,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(FeatherIcons.compass),
+        icon: const Icon(FeatherIcons.compass),
         title: ("Near Me"),
         activeColorPrimary: Colors.white,
         inactiveColorPrimary: Colors.grey,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(
+        icon: const Icon(
           FeatherIcons.plusCircle,
           color: Colors.white,
         ),
@@ -161,13 +265,13 @@ class _HomePageState extends State<HomePage> {
         inactiveColorPrimary: Colors.grey,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(FeatherIcons.messageCircle),
+        icon: const Icon(FeatherIcons.messageCircle),
         title: ("Chat"),
         activeColorPrimary: Colors.white,
         inactiveColorPrimary: Colors.grey,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(FeatherIcons.user),
+        icon: const Icon(FeatherIcons.user),
         title: ("Profile"),
         activeColorPrimary: Colors.white,
         inactiveColorPrimary: Colors.grey,

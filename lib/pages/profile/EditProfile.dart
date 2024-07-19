@@ -1,8 +1,9 @@
 import 'dart:io';
 
+import 'package:akababi/component/Error.dart';
 import 'package:akababi/pages/profile/cubit/picture_cubit.dart';
 import 'package:akababi/pages/profile/cubit/profile_cubit.dart';
-import 'package:flutter/foundation.dart';
+import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -44,17 +45,17 @@ class _EditProfileState extends State<EditProfile> {
     return Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: Text('Profile'),
+          title: const Text('Profile'),
           actions: [
             IconButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/setting');
                 },
-                icon: Icon(Icons.settings)),
+                icon: const Icon(Icons.settings)),
           ],
         ),
         body: SingleChildScrollView(
-          child: Container(
+          child: SizedBox(
             width: double.infinity,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -65,8 +66,8 @@ class _EditProfileState extends State<EditProfile> {
                         return Stack(
                           children: [
                             Container(
-                              padding: EdgeInsets.all(4),
-                              decoration: BoxDecoration(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
                                   color: Colors.white, shape: BoxShape.circle),
                               child: ClipOval(
                                   child: Image.file(
@@ -85,25 +86,72 @@ class _EditProfileState extends State<EditProfile> {
                                           .setImage();
                                     },
                                     icon: Container(
-                                        padding: EdgeInsets.all(4),
-                                        decoration: BoxDecoration(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
                                             color: Colors.white,
                                             shape: BoxShape.circle),
-                                        child: Icon(Icons.camera))))
+                                        child: const Icon(Icons.camera))))
                           ],
                         );
                       } else if (state is PictureEmpty) {
-                        return Center(
-                          child: Text("no picture"),
+                        if (state.imagePath != '') {
+                          return Stack(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle),
+                                child: ClipOval(
+                                    child: Image(
+                                  image: NetworkImage(
+                                      "${AuthRepo.SERVER}/${state.imagePath}"),
+                                  width: 150,
+                                  height: 150,
+                                  fit: BoxFit.cover,
+                                )),
+                              ),
+                              Positioned(
+                                  bottom: 1,
+                                  right: 1,
+                                  child: IconButton(
+                                      onPressed: () {
+                                        BlocProvider.of<PictureCubit>(context)
+                                            .setImage();
+                                      },
+                                      icon: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(
+                                              color: Colors.white,
+                                              shape: BoxShape.circle),
+                                          child: const Icon(Icons.camera))))
+                            ],
+                          );
+                        }
+                        return ClipOval(
+                          child: IconButton(
+                            onPressed: () {
+                              BlocProvider.of<PictureCubit>(context).setImage();
+                            },
+                            icon: Container(
+                              decoration:
+                                  const BoxDecoration(color: Colors.black),
+                              child: const Icon(
+                                Icons.person,
+                                size: 150,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
                         );
                       } else {
-                        return Center(
+                        return const Center(
                           child: Text("loading ..."),
                         );
                       }
                     }),
                     listener: ((context, state) {})),
-                SizedBox(
+                const SizedBox(
                   height: 40,
                 ),
                 BlocConsumer<ProfileCubit, ProfileState>(
@@ -113,6 +161,7 @@ class _EditProfileState extends State<EditProfile> {
                         birthController.text = state.user.date_of_birth ?? '';
                         return Column(
                           children: [
+                            ErrorItem(error: state.error),
                             InputField(state.user.fullname, 'Full Name',
                                 nameController, 'fullname'),
                             InputField(state.user.username, 'User Name',
@@ -124,10 +173,10 @@ class _EditProfileState extends State<EditProfile> {
                             InputField(state.user.gender, 'Gender',
                                 genderController, 'gender'),
                             Container(
-                              padding: EdgeInsets.only(left: 10),
-                              margin: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.only(left: 10),
+                              margin: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: Colors.white,
                               ),
                               child: TextField(
@@ -136,7 +185,7 @@ class _EditProfileState extends State<EditProfile> {
                                 },
                                 readOnly: true,
                                 controller: birthController,
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
                                   labelText: 'BIRTH DATE',
                                   filled: true,
                                   contentPadding: EdgeInsets.symmetric(
@@ -150,11 +199,11 @@ class _EditProfileState extends State<EditProfile> {
                           ],
                         );
                       } else if (state is PictureEmpty) {
-                        return Center(
+                        return const Center(
                           child: Text("no picture"),
                         );
                       } else {
-                        return Center(
+                        return const Center(
                           child: Text("loading ..."),
                         );
                       }
@@ -162,18 +211,21 @@ class _EditProfileState extends State<EditProfile> {
                     listener: ((context, state) {})),
 
                 ElevatedButton(
-                    onPressed: () {
-                      BlocProvider.of<ProfileCubit>(context).editProfile(
+                    onPressed: () async {
+                      final res = await BlocProvider.of<ProfileCubit>(context)
+                          .editProfile(
                         fullname: nameController.text,
                         username: usernameController.text,
                         bio: bioController.text,
                         phonenumber: phoneController.text,
-                        gender: genderController.text,
+                        gender: genderController.text.toLowerCase(),
                         birthday: birthController.text,
                       );
-                      Navigator.pop(context);
+                      if (res) {
+                        Navigator.pop(context);
+                      }
                     },
-                    child: Text("save change")),
+                    child: const Text("save change")),
                 // ElevatedButton(
                 //     onPressed: () async {
                 //       // final pref = await SharedPreferences.getInstance();
@@ -190,8 +242,8 @@ class _EditProfileState extends State<EditProfile> {
       String name) {
     controller.text = text ?? '';
     return Container(
-      padding: EdgeInsets.only(left: 10),
-      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.only(left: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
           color: Colors.white,
           // boxShadow: [
@@ -212,11 +264,11 @@ class _EditProfileState extends State<EditProfile> {
             controller: controller,
             decoration: InputDecoration(
               contentPadding:
-                  EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-              border: OutlineInputBorder(),
+                  const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+              border: const OutlineInputBorder(),
               isDense: true,
               labelText: hint,
-              hintStyle: TextStyle(fontSize: 15),
+              hintStyle: const TextStyle(fontSize: 15),
             ),
           ),
         ],
@@ -225,15 +277,15 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Future<void> _selectDate() async {
-    DateTime? _picked = await showDatePicker(
+    DateTime? picked = await showDatePicker(
         context: context,
         initialDate: DateTime(2000),
         firstDate: DateTime(1960),
         lastDate: DateTime(2050));
-    if (_picked != null) {
-      print(_picked.toString());
+    if (picked != null) {
+      print(picked.toString());
 
-      birthController.text = _picked.toString().split(" ")[0];
+      birthController.text = picked.toString().split(" ")[0];
     }
   }
 }

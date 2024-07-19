@@ -16,14 +16,21 @@ class UserRepo {
   final dio = Dio();
   final logger = Logger();
 
+  /// Sets the profile picture for the user.
+  ///
+  /// Takes a [filePath] as input and uploads the image file to the server.
+  /// Returns a [Future] that completes with a [User] object if the operation is successful,
+  /// otherwise returns `null`.
+  ///
+  /// Throws an exception if an error occurs during the process.
   Future<User?> setProfilePic(String filePath) async {
     try {
-      final _user = await authRepo.user;
+      final user = await authRepo.user;
       print(basename(filePath));
       final file = await MultipartFile.fromFile(filePath,
           filename: basename(filePath), contentType: MediaType('image', 'png'));
       print(file);
-      Map<String, dynamic> data = {'file': file, 'id': _user!.id};
+      Map<String, dynamic> data = {'file': file, 'id': user!.id};
       FormData formData = FormData.fromMap(data);
 
       Response res = await dio.put('${AuthRepo.SERVER}/user/uploadProfileImage',
@@ -33,12 +40,18 @@ class UserRepo {
     } catch (e) {
       print(e);
     }
+    return null;
   }
 
-  Future<List<Map<String, dynamic>>> getUserFriend() async {
+  /// Retrieves the list of friends for a given user ID.
+  ///
+  /// Returns a list of maps, where each map represents a friend and contains
+  /// their information.
+  ///
+  /// The [id] parameter specifies the user ID for which to retrieve the friends.
+  /// Throws an exception if an error occurs during the API call.
+  Future<List<Map<String, dynamic>>> getUserFriend(int id) async {
     try {
-      User? user = await authRepo.user;
-      var id = user!.id;
       Response res = await dio.get('${AuthRepo.SERVER}/user/getUserFriend/$id');
       List<dynamic> friends = res.data;
       List<Map<String, dynamic>> friendList =
@@ -50,11 +63,14 @@ class UserRepo {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getUserPost() async {
+  /// Retrieves the posts of a user with the specified [id].
+  ///
+  /// Returns a [Future] that completes with a list of maps, where each map represents a post.
+  /// Each map contains key-value pairs where the keys are strings and the values are dynamic.
+  /// If an error occurs during the retrieval process, an empty list is returned.
+  Future<List<Map<String, dynamic>>> getUserPost(int id) async {
     try {
-      User? user = await authRepo.user;
-      var id = user!.id;
-      Response res = await dio.get('${AuthRepo.SERVER}/user/getUserPost/$id');
+      Response res = await dio.get('${AuthRepo.SERVER}/post/getUserPost/$id');
       List<dynamic> posts = res.data;
       List<Map<String, dynamic>> postList =
           posts.map((post) => post as Map<String, dynamic>).toList();
@@ -65,12 +81,57 @@ class UserRepo {
     }
   }
 
+  /// Retrieves the list of posts that a user has reposted.
+  ///
+  /// The [id] parameter specifies the user ID.
+  /// Returns a [Future] that resolves to a list of [Map<String, dynamic>]
+  /// representing the reposted posts.
+  /// If an error occurs during the API call, an empty list is returned.
+  Future<List<Map<String, dynamic>>> getUserReposted(int id) async {
+    try {
+      Response res = await dio.get('${AuthRepo.SERVER}/post/getReposted/$id');
+      List<dynamic> posts = res.data;
+      List<Map<String, dynamic>> postList =
+          posts.map((post) => post as Map<String, dynamic>).toList();
+      return postList;
+    } catch (e) {
+      print(e);
+      return [];
+    }
+  }
+
+  /// Retrieves the saved posts of a user with the given [id].
+  ///
+  /// Returns a [Future] that completes with a list of maps, where each map represents a post.
+  /// Each map contains the post data as key-value pairs, with the keys being strings and the values being dynamic.
+  /// If an error occurs during the retrieval process, an empty list is returned.
+  Future<List<Map<String, dynamic>>> getUserSaved(int id) async {
+    try {
+      Response res = await dio.get('${AuthRepo.SERVER}/post/getSavedPost/$id');
+      List<dynamic> posts = res.data;
+      List<Map<String, dynamic>> postList =
+          posts.map((post) => post as Map<String, dynamic>).toList();
+      // logger.d(postList);
+      return postList;
+    } catch (e) {
+      print(e);
+      return [];
+    }
+  }
+
+  /// Retrieves the list of posts that the user has liked.
+  ///
+  /// This method makes an HTTP GET request to the server to fetch the liked posts
+  /// for the currently authenticated user. It returns a list of maps, where each
+  /// map represents a liked post and contains the post's data.
+  ///
+  /// If an error occurs during the request or processing, an empty list is returned.
   Future<List<Map<String, dynamic>>> getUserLikedPost() async {
     try {
       User? user = await authRepo.user;
       var id = user!.id;
       Response res =
-          await dio.get('${AuthRepo.SERVER}/user/getUserLikedPost/$id');
+          await dio.get('${AuthRepo.SERVER}/post/getUserLikedPost/$id');
       List<dynamic> likedPosts = res.data;
       List<Map<String, dynamic>> likedPostList =
           likedPosts.map((post) => post as Map<String, dynamic>).toList();
@@ -81,38 +142,38 @@ class UserRepo {
     }
   }
 
-// write a function for getUserFriend in 'getUserFriend/:id' and return in List<Map<String, dynamic>> type
-
-  Future<User?> editProfile(
-      String first_name,
-      String last_name,
-      String username,
-      String bio,
-      String phonenumber,
-      String gender,
-      String birthday) async {
-    try {
-      final _user = await authRepo.user;
-      Map<String, dynamic> data = {
-        'id': _user!.id,
-        'first_name': first_name,
-        'last_name': last_name,
-        'username': username,
-        'bio': bio,
-        'phonenumber': phonenumber,
-        'gender': gender,
-        'birthday': birthday,
-      };
-      Response res =
-          await dio.put('${AuthRepo.SERVER}/user/editProfile', data: data);
-      print(res.data['user']);
+  /// Edits the user profile with the provided information.
+  ///
+  /// The [firstName], [lastName], [username], [bio], [phonenumber], [gender], and [birthday] parameters
+  /// are used to update the user's profile information.
+  ///
+  /// Returns a [Future] that completes with a [User] object if the profile is successfully edited,
+  /// or `null` if an error occurs.
+  Future<User?> editProfile(String firstName, String lastName, String username,
+      String bio, String phonenumber, String gender, String? birthday) async {
+    final user = await authRepo.user;
+    Map<String, dynamic> data = {
+      'id': user!.id,
+      'first_name': firstName,
+      'last_name': lastName,
+      'username': username,
+      'bio': bio,
+      'phonenumber': phonenumber,
+      'gender': gender,
+      'birthday': birthday,
+    };
+    Response res =
+        await dio.put('${AuthRepo.SERVER}/user/editProfile', data: data);
+    if (res.statusCode == 200) {
       return User.fromMap(res.data['user']);
-    } catch (e) {
-      print(e);
-      return null;
     }
   }
 
+  /// Retrieves an image from the device's gallery.
+  ///
+  /// Uses the [ImagePicker] package to open the device's gallery and allow the user to select an image.
+  /// Once an image is selected, it is saved locally and the file path is returned.
+  /// If no image is selected, null is returned.
   Future<String?> getImage() async {
     final picker = ImagePicker();
     final file = await picker.pickImage(source: ImageSource.gallery);
@@ -121,13 +182,24 @@ class UserRepo {
       final savedImage = await _saveLocally(File(file.path));
       return file.path;
     }
+    return null;
   }
 
+  /// Picks a file using the FilePicker plugin.
+  /// Returns a Future that completes with void.
   Future<void> pickFile() async {
     final file = await FilePicker.platform.pickFiles();
     if (file != null) {}
   }
 
+  /// Saves the given image file locally and updates the profile picture path in SharedPreferences.
+  /// Returns a Future that completes with the saved image file.
+  ///
+  /// Parameters:
+  /// - image: The image file to be saved locally.
+  ///
+  /// Returns:
+  /// - The saved image file.
   Future<File> _saveLocally(File image) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -140,6 +212,16 @@ class UserRepo {
     return savedImage;
   }
 
+  /// Uploads an image and file for a user with the specified [id].
+  ///
+  /// This method allows the user to pick an image from the gallery and upload it along with a file to the server.
+  /// The image and file are sent as multipart form data using the Dio library.
+  ///
+  /// The [id] parameter represents the user's ID.
+  ///
+  /// Returns a [Future] that completes with a [User] object if the image and file are uploaded successfully.
+  /// Returns `null` if the user cancels the image or file selection.
+  /// Throws an [Exception] if there is an error during the upload process.
   Future<User?> uploadImageAndFile(int id) async {
     final imagePicker = ImagePicker();
     final dio = Dio();
@@ -147,14 +229,11 @@ class UserRepo {
     // Pick image and file
     final pickedImage =
         await imagePicker.pickImage(source: ImageSource.gallery);
-    // final pickedFile =
-    //     await FilePicker.platform.pickFiles(allowMultiple: false);
-//  && pickedFile!.files.isNotEmpty
     if (pickedImage != null) {
       final imagePath = pickedImage.path;
       // final filePath = pickedFile.files.single.path;
-      final url = AuthRepo.SERVER +
-          '/user/uploadProfileImage'; // Replace with your Node.js server endpoint
+      final url =
+          '${AuthRepo.SERVER}/user/uploadProfileImage'; // Replace with your Node.js server endpoint
 
       try {
         final formData = FormData.fromMap({
@@ -184,5 +263,6 @@ class UserRepo {
     } else {
       print('User canceled image or file selection.');
     }
+    return null;
   }
 }

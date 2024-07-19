@@ -12,5 +12,10 @@ final class ProfileLoaded extends ProfileState {
   final List<Map<String, dynamic>> posts;
   final List<Map<String, dynamic>> friends;
   final List<Map<String, dynamic>> likedPosts;
-  ProfileLoaded(this.user, this.posts, this.friends, this.likedPosts);
+  final List<Map<String, dynamic>> reposted;
+  final List<Map<String, dynamic>> saved;
+  final String? error;
+  ProfileLoaded(this.user, this.posts, this.friends, this.likedPosts,
+      this.reposted, this.saved,
+      {this.error});
 }

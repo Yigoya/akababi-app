@@ -9,7 +9,7 @@ class TitleText extends StatelessWidget {
     return Container(
       child: Text(
         text,
-        style: TextStyle(
+        style: const TextStyle(
             color: Colors.black, fontSize: 30, fontWeight: FontWeight.bold),
       ),
     );

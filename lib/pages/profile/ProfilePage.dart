@@ -1,15 +1,13 @@
 import 'dart:io';
 import 'package:akababi/pages/profile/EditProfile.dart';
 import 'package:akababi/pages/profile/UserFriends.dart';
-import 'package:akababi/pages/profile/UserProfile.dart';
 import 'package:akababi/pages/profile/cubit/picture_cubit.dart';
 import 'package:akababi/pages/profile/cubit/profile_cubit.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -30,7 +28,14 @@ class _ProfilePageState extends State<ProfilePage>
     super.initState();
     BlocProvider.of<PictureCubit>(context).getImage();
     BlocProvider.of<ProfileCubit>(context).getUser();
-    ;
+  }
+
+  void generateLinkAndShare(int id) {
+    // Generate your text here
+    String textToShare = "https://api1.myakababi.com/user/$id";
+
+    // Share the text
+    Share.share(textToShare);
   }
 
   @override
@@ -38,15 +43,13 @@ class _ProfilePageState extends State<ProfilePage>
     return Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: Text('Profile'),
+          title: const Text('Profile'),
           actions: [
             IconButton(
                 onPressed: () {
-                  Navigator.of(context, rootNavigator: true).push(
-                      MaterialPageRoute(
-                          builder: (context) => EditProfile(name: 'fullname')));
+                  BlocProvider.of<ProfileCubit>(context).getUser();
                 },
-                icon: Icon(Icons.mode_edit)),
+                icon: const Icon(Icons.refresh)),
             // IconButton(
             //     onPressed: () {
             //       Navigator.of(context, rootNavigator: true).push(
@@ -58,11 +61,11 @@ class _ProfilePageState extends State<ProfilePage>
                   Navigator.of(context, rootNavigator: true)
                       .pushNamed('/setting');
                 },
-                icon: Icon(Icons.settings)),
+                icon: const Icon(Icons.settings)),
           ],
         ),
         body: SingleChildScrollView(
-          child: Container(
+          child: SizedBox(
             width: double.infinity,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -70,7 +73,6 @@ class _ProfilePageState extends State<ProfilePage>
                 BlocConsumer<PictureCubit, PictureState>(
                     builder: ((context, state) {
                       if (state is PictureLoaded) {
-                        print(state.imagePath);
                         return ClipOval(
                             child: Image.file(
                           File(state.imagePath),
@@ -79,7 +81,7 @@ class _ProfilePageState extends State<ProfilePage>
                           fit: BoxFit.cover,
                         ));
                       } else if (state is PictureEmpty) {
-                        if (state.imagePath != null) {
+                        if (state.imagePath != '') {
                           return ClipOval(
                               child: Image(
                             image: NetworkImage(
@@ -95,8 +97,8 @@ class _ProfilePageState extends State<ProfilePage>
                               BlocProvider.of<PictureCubit>(context).setImage();
                             },
                             icon: Container(
-                              decoration: BoxDecoration(color: Colors.black),
-                              child: Icon(
+                              decoration: const BoxDecoration(color: Colors.black),
+                              child: const Icon(
                                 Icons.person,
                                 size: 150,
                                 color: Colors.white,
@@ -105,7 +107,7 @@ class _ProfilePageState extends State<ProfilePage>
                           ),
                         );
                       } else {
-                        return Center(
+                        return const Center(
                           child: Text("loading ..."),
                         );
                       }
@@ -118,24 +120,34 @@ class _ProfilePageState extends State<ProfilePage>
                           children: [
                             Text(
                               state.user.fullname,
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 25, fontWeight: FontWeight.bold),
                             ),
-                            Text(
-                              '@${state.user.username}',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.w500),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '@${state.user.username}',
+                                  style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                                IconButton(
+                                    onPressed: () =>
+                                        generateLinkAndShare(state.user.id),
+                                    icon: const Icon(Icons.share))
+                              ],
                             ),
                             BlocBuilder<ProfileCubit, ProfileState>(
                               builder: (context, state) {
-                                if (state is ProfileLoaded)
+                                if (state is ProfileLoaded) {
                                   return Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceEvenly,
                                     children: [
                                       Column(
                                         children: [
-                                          Text("Posts"),
+                                          const Text("Posts"),
                                           Text('${state.posts.length}')
                                         ],
                                       ),
@@ -151,27 +163,38 @@ class _ProfilePageState extends State<ProfilePage>
                                         },
                                         child: Column(
                                           children: [
-                                            Text("Match"),
+                                            const Text("Match"),
                                             Text('${state.friends.length}')
                                           ],
                                         ),
                                       ),
                                     ],
                                   );
-                                else
-                                  return Center(child: Text("No Posts"));
+                                } else {
+                                  return const Center(child: Text("No Posts"));
+                                }
                               },
                             ),
-                            SizedBox(
+                            fillInComplete(state.user.bio,
+                                "add bio for your profile", 'bio'),
+                            fillInComplete(
+                                state.user.phonenumber,
+                                "add Phone Number for your profile",
+                                'phonenumber'),
+                            fillInComplete(
+                                state.user.date_of_birth,
+                                "add User birth Day for your profile",
+                                'birthday'),
+                            const SizedBox(
                               height: 20,
                             ),
                             TabBar(
                               controller: tabController,
-                              tabs: [
+                              tabs: const [
                                 Tab(text: 'Posts'),
                                 Tab(text: 'Liked'),
-                                Tab(text: 'Saved'),
                                 Tab(text: 'Reposts'),
+                                Tab(text: 'Saved'),
                               ],
                             ),
                             SizedBox(
@@ -185,12 +208,12 @@ class _ProfilePageState extends State<ProfilePage>
                                     builder: (context, state) {
                                       if (state is ProfileLoaded) {
                                         if (state.posts.isEmpty) {
-                                          return Center(
+                                          return const Center(
                                               child: Text("No Posts"));
                                         }
                                         return GridView.builder(
                                           gridDelegate:
-                                              SliverGridDelegateWithFixedCrossAxisCount(
+                                              const SliverGridDelegateWithFixedCrossAxisCount(
                                             crossAxisCount: 3,
                                             crossAxisSpacing: 10,
                                             mainAxisSpacing: 10,
@@ -198,17 +221,12 @@ class _ProfilePageState extends State<ProfilePage>
                                           itemCount: state.posts.length,
                                           itemBuilder: (context, index) {
                                             final post = state.posts[index];
-                                            return Container(
-                                              color: Colors.amberAccent,
-                                              child: Center(
-                                                child:
-                                                    Text('Post ${index + 1}'),
-                                              ),
-                                            );
+
+                                            return listItem(context, post);
                                           },
                                         );
                                       } else {
-                                        return Center(child: Text("No Posts"));
+                                        return const Center(child: Text("No Posts"));
                                       }
                                     },
                                   ),
@@ -223,13 +241,13 @@ class _ProfilePageState extends State<ProfilePage>
                                     builder: (context, state) {
                                       if (state is ProfileLoaded) {
                                         if (state.likedPosts.isEmpty) {
-                                          return Center(
+                                          return const Center(
                                             child: Text("No Liked Posts"),
                                           );
                                         }
                                         return GridView.builder(
                                           gridDelegate:
-                                              SliverGridDelegateWithFixedCrossAxisCount(
+                                              const SliverGridDelegateWithFixedCrossAxisCount(
                                             crossAxisCount: 3,
                                             crossAxisSpacing: 10,
                                             mainAxisSpacing: 10,
@@ -238,52 +256,90 @@ class _ProfilePageState extends State<ProfilePage>
                                           itemBuilder: (context, index) {
                                             final post =
                                                 state.likedPosts[index];
-                                            return Container(
-                                              color: Colors.greenAccent,
-                                              child: Center(
-                                                child: Text(
-                                                    'Liked Post ${index + 1}'),
-                                              ),
-                                            );
+                                            Map<String, dynamic> media =
+                                                decodeMedia(post['media']);
+                                            var isVideo =
+                                                media['video'] != null;
+                                            var imagePath = isVideo
+                                                ? media['thumbnail']
+                                                : media['image'];
+                                            return listItem(context, post);
                                           },
                                         );
                                       } else {
-                                        return Center(
+                                        return const Center(
                                             child: Text("No Liked Posts"));
                                       }
                                     },
                                   ),
-                                  Container(
-                                    child: Center(
-                                      child: Text('Reposts Page'),
-                                    ),
+                                  BlocBuilder<ProfileCubit, ProfileState>(
+                                    builder: (context, state) {
+                                      if (state is ProfileLoaded) {
+                                        if (state.reposted.isEmpty) {
+                                          return const Center(
+                                              child: Text("No Reposts"));
+                                        }
+                                        return GridView.builder(
+                                          gridDelegate:
+                                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 3,
+                                            crossAxisSpacing: 10,
+                                            mainAxisSpacing: 10,
+                                          ),
+                                          itemCount: state.reposted.length,
+                                          itemBuilder: (context, index) {
+                                            final repost =
+                                                state.reposted[index];
+
+                                            return listItem(
+                                                context, repost["post"]);
+                                          },
+                                        );
+                                      } else {
+                                        return const Center(
+                                            child: Text("No Reposts"));
+                                      }
+                                    },
                                   ),
-                                  Container(
-                                    child: Center(
-                                      child: Text('Reposts Page'),
-                                    ),
+                                  BlocBuilder<ProfileCubit, ProfileState>(
+                                    builder: (context, state) {
+                                      if (state is ProfileLoaded) {
+                                        if (state.saved.isEmpty) {
+                                          return const Center(
+                                              child: Text("No Saved Posts"));
+                                        }
+                                        return GridView.builder(
+                                          gridDelegate:
+                                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 3,
+                                            crossAxisSpacing: 10,
+                                            mainAxisSpacing: 10,
+                                          ),
+                                          itemCount: state.saved.length,
+                                          itemBuilder: (context, index) {
+                                            final saved = state.saved[index];
+                                            print(saved.length);
+                                            return listItem(
+                                                context, saved['post']);
+                                          },
+                                        );
+                                      } else {
+                                        return const Center(
+                                            child: Text("No Saved Posts"));
+                                      }
+                                    },
                                   ),
                                 ],
                               ),
                             ),
-                            fillInComplete(state.user.bio,
-                                "add bio for your profile", 'bio'),
-                            fillInComplete(
-                                state.user.phonenumber,
-                                "add Phone Number for your profile",
-                                'phonenumber'),
-                            fillInComplete(
-                                state.user.date_of_birth,
-                                "add User birth Day for your profile",
-                                'birthday'),
                           ],
                         );
                       } else if (state is PictureEmpty) {
-                        return Center(
+                        return const Center(
                           child: Text("no picture"),
                         );
                       } else {
-                        return Center(
+                        return const Center(
                           child: Text("loading ..."),
                         );
                       }
@@ -307,7 +363,7 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Widget fillInComplete(String? vary, String text, String name) {
-    return vary == null
+    return vary == ''
         ? GestureDetector(
             onTap: () {
               Navigator.of(context, rootNavigator: true).push(MaterialPageRoute(
@@ -316,8 +372,8 @@ class _ProfilePageState extends State<ProfilePage>
                       )));
             },
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.amberAccent)),
@@ -326,11 +382,11 @@ class _ProfilePageState extends State<ProfilePage>
                 children: [
                   Text(
                     text,
-                    style: TextStyle(
-                        color: const Color.fromARGB(255, 95, 75, 15),
+                    style: const TextStyle(
+                        color: Color.fromARGB(255, 95, 75, 15),
                         fontSize: 20),
                   ),
-                  Icon(
+                  const Icon(
                     Icons.keyboard_arrow_right_sharp,
                     size: 30,
                   )
@@ -340,6 +396,7 @@ class _ProfilePageState extends State<ProfilePage>
           )
         : Container();
   }
+
   // @override
   // void dispose() {
   //   picture

@@ -1,6 +1,5 @@
 import 'package:akababi/component/Button.dart';
 import 'package:akababi/component/Error.dart';
-import 'package:akababi/component/GoogleLogin.dart';
 import 'package:akababi/component/OptionText.dart';
 import 'package:akababi/component/TextInput.dart';
 import 'package:flutter/material.dart';
@@ -23,32 +22,32 @@ class Email extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
           image: DecorationImage(
               image: AssetImage('assets/image/bgauth.jpg'), fit: BoxFit.cover)),
       child: SingleChildScrollView(
         child: Container(
           height: MediaQuery.of(context).size.height,
           alignment: Alignment.center,
-          padding: EdgeInsets.symmetric(horizontal: 25),
+          padding: const EdgeInsets.symmetric(horizontal: 25),
           child: Column(
             mainAxisAlignment: !isForForgetPassword
                 ? MainAxisAlignment.center
                 : MainAxisAlignment.start,
             children: [
               isForForgetPassword
-                  ? SizedBox(
+                  ? const SizedBox(
                       height: 120,
                     )
-                  : SizedBox(
+                  : const SizedBox(
                       height: 0,
                     ),
               !isForForgetPassword
-                  ? Text(
+                  ? const Text(
                       "Sign Up",
                       style: TextStyle(
                           fontSize: 40,
-                          color: const Color.fromARGB(255, 255, 156, 7)),
+                          color: Color.fromARGB(255, 255, 156, 7)),
                     )
                   : Container(),
               !isForForgetPassword
@@ -63,10 +62,10 @@ class Email extends StatelessWidget {
                           fontSize: 15, color: Colors.black.withOpacity(0.7)),
                     ),
               !isForForgetPassword
-                  ? SizedBox(
+                  ? const SizedBox(
                       height: 30,
                     )
-                  : SizedBox(
+                  : const SizedBox(
                       height: 0,
                     ),
               ErrorItem(
@@ -74,7 +73,7 @@ class Email extends StatelessWidget {
                 isLoading: isLoading,
               ),
 
-              SizedBox(
+              const SizedBox(
                 height: 15,
               ),
               TextInput(
@@ -82,7 +81,7 @@ class Email extends StatelessWidget {
                   hint: "Enter your email",
                   isPass: false),
 
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
 
@@ -93,20 +92,17 @@ class Email extends StatelessWidget {
                   Button(
                       func: fun,
                       // func: () => authBloc
-                      //     .add(EmailVarifyEvent(emailController.text, context)),
+                      //     .add(EmailVarifyEvent(emailController.text.trip(), context)),
                       text: "Next"),
                 ],
               ),
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
-              OptionText(func: () {}, text: 'already have account'),
-              SizedBox(
-                height: 30,
-              ),
+
               // BlocListener<AuthBloc, AuthState>(
               //   listener: (context, state) {
               //     if (state is LoginState) {

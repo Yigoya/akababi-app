@@ -43,7 +43,7 @@ class ChatIcon extends StatelessWidget {
         ),
         Text(
           '@$username', // Display username with '@' prefix
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 14,
           ),

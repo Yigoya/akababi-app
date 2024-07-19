@@ -34,7 +34,7 @@ class CodeVerify extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
+            const SizedBox(
               height: 200,
             ),
             Text(
@@ -44,21 +44,21 @@ class CodeVerify extends StatelessWidget {
                   color: Colors.black.withOpacity(0.5),
                   fontWeight: FontWeight.bold),
             ),
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
             ErrorItem(
               error: error,
               isLoading: isLoading,
             ),
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
             TextInput(
                 controller: codeController,
                 hint: "Enter 6 digit code ",
                 isPass: false),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             Row(

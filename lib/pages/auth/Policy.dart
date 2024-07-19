@@ -31,7 +31,7 @@ class Policy extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("TERMS AND CONDITIONS"),
+          title: const Text("TERMS AND CONDITIONS"),
         ),
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
@@ -43,7 +43,7 @@ class Policy extends StatelessWidget {
                   children: [
                     Titles(titles[index]),
                     body(bodys[index]),
-                    SizedBox(
+                    const SizedBox(
                       height: 20,
                     )
                   ],
@@ -55,7 +55,7 @@ class Policy extends StatelessWidget {
   Widget Titles(String title) {
     return Text(
       title,
-      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
+      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
     );
   }
 

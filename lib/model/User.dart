@@ -9,6 +9,7 @@ class User {
   String? bio;
   String? location_id;
   String email;
+  String status;
 
   User({
     required this.id,
@@ -21,6 +22,7 @@ class User {
     required this.profile_picture,
     required this.phonenumber,
     required this.email,
+    required this.status,
   });
 
   Map<String, dynamic> toMap() {
@@ -35,6 +37,7 @@ class User {
       'bio': bio,
       'location_id': location_id,
       'email': email,
+      'status': status,
     };
   }
 
@@ -58,6 +61,7 @@ class User {
       bio: map['bio'] ?? '',
       location_id: map['location_id'] ?? '',
       email: map['email'],
+      status: map['status'] ?? '',
     );
   }
 }

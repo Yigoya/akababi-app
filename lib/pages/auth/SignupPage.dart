@@ -7,13 +7,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:akababi/bloc/auth/auth_bloc.dart';
 import 'package:akababi/bloc/auth/auth_event.dart';
 import 'package:akababi/bloc/auth/auth_state.dart';
-import 'package:akababi/component/Button.dart';
-import 'package:akababi/component/GoogleLogin.dart';
-import 'package:akababi/component/OptionText.dart';
-import 'package:akababi/component/TextInput.dart';
 
 class SignupPage extends StatefulWidget {
-  SignupPage({super.key});
+  const SignupPage({super.key});
 
   @override
   State<SignupPage> createState() => _SignupPageState();
@@ -44,7 +40,7 @@ class _SignupPageState extends State<SignupPage> {
 
   String genderValue = 'male';
 
-  Gender? _gender = Gender.female;
+  final Gender _gender = Gender.female;
 
   @override
   Widget build(BuildContext context) {
@@ -60,8 +56,8 @@ class _SignupPageState extends State<SignupPage> {
               isLoading: state.isLoading,
               error: state.error,
               emailController: emailController,
-              fun: () =>
-                  authBloc.add(EmailVarifyEvent(emailController.text, context)),
+              fun: () => authBloc
+                  .add(EmailVarifyEvent(emailController.text.trim(), context)),
             );
           } else if (state is EmailVarifyState) {
             return CodeVerify(
@@ -69,8 +65,8 @@ class _SignupPageState extends State<SignupPage> {
                 error: state.error,
                 codeController: codeController,
                 emailController: emailController,
-                fun: () => authBloc.add(CodeVarifyEvent(
-                    codeController.text, emailController.text, context)));
+                fun: () => authBloc.add(CodeVarifyEvent(codeController.text,
+                    emailController.text.trim(), context)));
           } else if (state is CodeVarifyState) {
             return UserInfo(
                 fnController: fnController,
@@ -89,7 +85,7 @@ class _SignupPageState extends State<SignupPage> {
                     usernameController.text,
                     fnController.text,
                     lnController.text,
-                    emailController.text,
+                    emailController.text.trim(),
                     phoneController.text,
                     passwordController.text,
                     confirmController.text,
@@ -98,7 +94,7 @@ class _SignupPageState extends State<SignupPage> {
                     context)));
           } else {
             authBloc.add(InitialEvent());
-            return Center(child: Text("error"));
+            return const Center(child: Text("error"));
           }
         },
       ),
@@ -113,7 +109,7 @@ class _SignupPageState extends State<SignupPage> {
 //                         Button(
 //                             func: () => authBloc.add(SignUpEvent(
 //                                 fullnameController.text,
-//                                 emailController.text,
+//                                 emailController.text.trim(),
 //                                 phoneController.text,
 //                                 passwordController.text,
 //                                 confirmController.text,

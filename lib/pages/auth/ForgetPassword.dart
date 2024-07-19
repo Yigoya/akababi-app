@@ -1,6 +1,5 @@
 import 'package:akababi/pages/auth/components/CodeVerify.dart';
 import 'package:akababi/pages/auth/components/Email.dart';
-import 'package:akababi/pages/auth/components/UserInfo.dart';
 import 'package:akababi/pages/auth/components/UserPass.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,7 +8,7 @@ import 'package:akababi/bloc/auth/auth_event.dart';
 import 'package:akababi/bloc/auth/auth_state.dart';
 
 class ForgetPassword extends StatefulWidget {
-  ForgetPassword({super.key});
+  const ForgetPassword({super.key});
 
   @override
   State<ForgetPassword> createState() => _ForgetPasswordState();
@@ -40,7 +39,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
 
   String genderValue = 'male';
 
-  Gender? _gender = Gender.female;
+  final Gender _gender = Gender.female;
 
   @override
   Widget build(BuildContext context) {
@@ -57,14 +56,13 @@ class _ForgetPasswordState extends State<ForgetPassword> {
               emailController: emailController,
               error: state.error,
               isForForgetPassword: true,
-              fun: () => authBloc.add(
-                  ForgetPassEmailVarifyEvent(emailController.text, context)),
+              fun: () => authBloc.add(ForgetPassEmailVarifyEvent(
+                  emailController.text.trim(), context)),
             );
           } else if (state is LoadingState) {
-            return Container(
+            return const SizedBox(
                 height: 400,
-                child:
-                    Center(child: const CircularProgressIndicator.adaptive()));
+                child: Center(child: CircularProgressIndicator.adaptive()));
             // } else if (state is SignUpState) {
             //   return Center(child: Text(state.token));
           } else if (state is EmailVarifyState) {
@@ -73,8 +71,8 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                 error: state.error,
                 codeController: codeController,
                 emailController: emailController,
-                fun: () => authBloc.add(CodeVarifyEvent(
-                    codeController.text, emailController.text, context)));
+                fun: () => authBloc.add(CodeVarifyEvent(codeController.text,
+                    emailController.text.trim(), context)));
           } else if (state is CodeVarifyState) {
             return UserPass(
                 isLoading: state.isLoading,
@@ -84,10 +82,14 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                 passwordController: passwordController,
                 phoneController: phoneController,
                 usernameController: usernameController,
-                fun: () => authBloc.add(NewPasswordEvent(emailController.text,
-                    passwordController.text, confirmController.text, context)));
+                fun: () => authBloc.add(NewPasswordEvent(
+                    emailController.text.trim(),
+                    codeController.text,
+                    passwordController.text,
+                    confirmController.text,
+                    context)));
           } else {
-            return Center(child: Text("error"));
+            return const Center(child: Text("error"));
           }
         },
       ),

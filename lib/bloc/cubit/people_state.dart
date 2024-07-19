@@ -16,9 +16,11 @@ final class PeopleLoaded extends PeopleState {
   PeopleLoaded({required this.peoples});
 }
 
-final class SinglePeopleLoaded extends PeopleState {
-  final Map<String, dynamic> people;
-  final List<Map<String, dynamic>> peoples;
+// final class SinglePeopleLoaded extends PeopleState {
+//   final Map<String, dynamic> people;
+//   final List<Map<String, dynamic>> peoples;
+//   final List<Map<String, dynamic>> posts;
+//   final List<Map<String, dynamic>> friends;
 
-  SinglePeopleLoaded(this.people, this.peoples);
-}
+//   SinglePeopleLoaded(this.people, this.peoples, this.posts, this.friends);
+// }

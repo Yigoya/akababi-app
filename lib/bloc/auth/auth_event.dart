@@ -30,9 +30,11 @@ class LoginEvent extends AuthEvent {
 class NewPasswordEvent extends AuthEvent {
   BuildContext context;
   String email;
+  String code;
   String password;
   String confirm;
-  NewPasswordEvent(this.email, this.password, this.confirm, this.context);
+  NewPasswordEvent(
+      this.email, this.code, this.password, this.confirm, this.context);
 }
 
 class EmailVarifyEvent extends AuthEvent {
@@ -63,7 +65,11 @@ class BackEvent extends AuthEvent {
 }
 
 class GetLocationEvent extends AuthEvent {
-  GetLocationEvent();
+  bool? off;
+  BuildContext context;
+  GetLocationEvent({required this.context, bool? off, bool? isToggle}) {
+    this.off = off;
+  }
 }
 
 class LoadUserInfoEvent extends AuthEvent {

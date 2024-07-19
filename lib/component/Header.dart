@@ -9,15 +9,15 @@ PreferredSizeWidget? AppHeader(BuildContext context, String title) {
       IconButton(
           onPressed: () {
             Navigator.push(
-                context, MaterialPageRoute(builder: (context) => SearchPage()));
+                context, MaterialPageRoute(builder: (context) => const SearchPage()));
           },
-          icon: Icon(FeatherIcons.search)),
+          icon: const Icon(FeatherIcons.search)),
       IconButton(
           onPressed: () {
             Navigator.of(context, rootNavigator: true)
                 .pushNamed("/notification");
           },
-          icon: Icon(FeatherIcons.bell)),
+          icon: const Icon(FeatherIcons.bell)),
     ],
   );
 }

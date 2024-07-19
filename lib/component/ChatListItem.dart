@@ -5,7 +5,7 @@ class ChatListItem extends StatelessWidget {
   final String lastMessage;
   final bool isDelivered;
 
-  ChatListItem({
+  const ChatListItem({super.key, 
     required this.fullName,
     required this.lastMessage,
     required this.isDelivered,
@@ -28,17 +28,17 @@ class ChatListItem extends StatelessWidget {
               fontWeight: isDelivered ? FontWeight.bold : FontWeight.normal,
             ),
           ),
-          SizedBox(
+          const SizedBox(
               width:
                   8), // Add some spacing between the message and delivery status
           if (isDelivered)
-            Icon(
+            const Icon(
               Icons.check_circle,
               color: Colors.green,
               size: 16,
             ),
           if (!isDelivered)
-            Icon(
+            const Icon(
               Icons.check_circle_outline,
               color: Colors.grey,
               size: 16,

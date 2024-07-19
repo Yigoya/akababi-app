@@ -55,12 +55,25 @@ android {
             storeFile file('mykey.jks')
             storePassword 'android'
         }
+
+        release {
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+            storeFile file('mykey.jks')
+            storePassword 'android'
+        }
     }
 
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
+
+
+       release {
+           signingConfig signingConfigs.release
+       }
+   
     }
 }
 

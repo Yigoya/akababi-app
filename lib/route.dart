@@ -12,31 +12,39 @@ import 'package:akababi/pages/setting/SettingPage.dart';
 import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
 
+/// Generates the appropriate route based on the provided [settings].
+///
+/// The [settings] parameter contains information about the requested route,
+/// such as the route name and any arguments passed to it.
+///
+/// Returns a [MaterialPageRoute] that corresponds to the requested route.
+/// If the requested route is not found, a default error page is returned.
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
     case '/':
-      return MaterialPageRoute(settings: settings, builder: (_) => HomePage());
+      return MaterialPageRoute(
+          settings: settings, builder: (_) => const HomePage());
     case '/login':
       return MaterialPageRoute(settings: settings, builder: (_) => LoginPage());
     case '/forgetpassword':
       return MaterialPageRoute(
-          settings: settings, builder: (_) => ForgetPassword());
+          settings: settings, builder: (_) => const ForgetPassword());
     case '/policy':
       return MaterialPageRoute(settings: settings, builder: (_) => Policy());
     case '/notification':
       return MaterialPageRoute(
-          settings: settings, builder: (_) => NotificationPage());
+          settings: settings, builder: (_) => const NotificationPage());
     case '/profile':
       return MaterialPageRoute(
         settings: settings,
-        builder: (_) => ProfilePage(),
+        builder: (_) => const ProfilePage(),
       );
     case '/signup':
       return MaterialPageRoute(
-          settings: settings, builder: (_) => SignupPage());
+          settings: settings, builder: (_) => const SignupPage());
     case '/setting':
       return MaterialPageRoute(
-          settings: settings, builder: (_) => SettingPage());
+          settings: settings, builder: (_) => const SettingPage());
     case '/singlePost':
       final id = settings.arguments as int;
       return MaterialPageRoute(

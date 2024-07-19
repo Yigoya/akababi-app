@@ -59,7 +59,7 @@ class _UserPassState extends State<UserPass> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
+            const SizedBox(
               height: 150,
             ),
             Text(
@@ -73,7 +73,7 @@ class _UserPassState extends State<UserPass> {
               error: widget.error,
               isLoading: widget.isLoading,
             ),
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
             !widget.isForForgetPassword
@@ -83,7 +83,7 @@ class _UserPassState extends State<UserPass> {
                           controller: widget.usernameController,
                           hint: "Enter user name",
                           isPass: false),
-                      SizedBox(
+                      const SizedBox(
                         height: 20,
                       ),
                       // TextInput(
@@ -100,14 +100,14 @@ class _UserPassState extends State<UserPass> {
                   ? "Enter password"
                   : "New Password",
             ),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             TextInput(
                 controller: widget.confirmController,
                 hint: "Confirm a password",
                 isPass: true),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             !widget.isForForgetPassword
@@ -120,14 +120,14 @@ class _UserPassState extends State<UserPass> {
                               isChecked = value!;
                             });
                           }),
-                      Text("i accept the "),
+                      const Text("i accept the "),
                       GestureDetector(
                         onTap: () async {
                           await Navigator.pushNamed(context, '/policy');
                           BlocProvider.of<AuthBloc>(context)
                               .add(GetUserInfoEvent());
                         },
-                        child: Text(
+                        child: const Text(
                           "terms and conditions",
                           style: TextStyle(
                               color: Colors.blue,
@@ -146,7 +146,9 @@ class _UserPassState extends State<UserPass> {
                     func: widget.funPassForget != null
                         ? widget.funPassForget!
                         : widget.fun,
-                    text: "Sign Up"),
+                    text: widget.isForForgetPassword
+                        ? "Change Password"
+                        : "Sign Up"),
               ],
             ),
           ],

@@ -19,13 +19,13 @@ class _TextInputState extends State<TextInput> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 0),
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 0),
       decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.5),
-              offset: Offset(0, 1),
+              offset: const Offset(0, 1),
               blurRadius: 1,
             )
           ],
@@ -37,7 +37,7 @@ class _TextInputState extends State<TextInput> {
         decoration: InputDecoration(
           hintText: widget.hint,
           border: InputBorder.none,
-          hintStyle: TextStyle(fontSize: 15),
+          hintStyle: const TextStyle(fontSize: 15),
           suffixIcon: widget.isPass
               ? IconButton(
                   icon: Icon(

@@ -1,7 +1,6 @@
-import 'dart:ffi';
-
 import 'package:akababi/pages/profile/UserProfile.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
+import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -15,13 +14,23 @@ class PeopleItem extends StatefulWidget {
 
 class _PeopleItemState extends State<PeopleItem> {
   final logger = Logger();
+  var _isLocalImage = false;
+  var imageUrl = '';
   @override
   Widget build(BuildContext context) {
-    var imageUrl = widget.data['profile_picture'] ??
-        'uploads/image/183be109c77b089a72a693d8fd9e91ef-1000033241.jpg';
+    if (widget.data['profile_picture'] == null) {
+      setState(() {
+        imageUrl = 'assets/image/bgauth.jpg';
+        _isLocalImage = true;
+      });
+    } else {
+      setState(() {
+        imageUrl = widget.data['profile_picture'];
+      });
+    }
+
     return GestureDetector(
       onTap: () {
-        logger.d(widget.data);
         Navigator.push(
             context,
             MaterialPageRoute(
@@ -30,55 +39,131 @@ class _PeopleItemState extends State<PeopleItem> {
                     )));
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey),
-        ),
-        child: Column(
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: NetworkImage('${AuthRepo.SERVER}/${imageUrl}'),
-                      onError: (exception, stackTrace) {
-                        setState(() {
-                          imageUrl =
-                              'uploads/image/183be109c77b089a72a693d8fd9e91ef-1000033241.jpg';
-                        });
-                      })),
-            ),
-            Column(
-              children: [
-                Text(widget.data['first_name']),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('@${widget.data['username']}'),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Text("data")
-                  ],
-                )
-              ],
-            ),
-            GestureDetector(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4), color: Colors.red),
-                child: Text(
-                  'Follow',
-                  style: TextStyle(color: Colors.white),
-                ),
+            borderRadius: BorderRadius.circular(20),
+            image: DecorationImage(
+                fit: BoxFit.cover,
+                image: !_isLocalImage
+                    ? NetworkImage('${AuthRepo.SERVER}/$imageUrl')
+                        as ImageProvider<Object>
+                    : AssetImage(imageUrl) as ImageProvider<Object>,
+                onError: (exception, stackTrace) {
+                  setState(() {
+                    imageUrl = 'assets/image/bgauth.jpg';
+                    _isLocalImage = true;
+                  });
+                })),
+        child: Container(
+          height: 420,
+          padding: const EdgeInsets.all(20),
+          alignment: Alignment.bottomLeft, // Align items to the left
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.3),
+                    Colors.black.withOpacity(0.8),
+                  ])),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('${widget.data['first_name']} ${widget.data['last_name']}',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Colors.white)),
+              Text(
+                '@${widget.data['username']}',
+                style: const TextStyle(color: Colors.white),
               ),
-            )
-          ],
+              const SizedBox(
+                width: 10,
+              ),
+              widget.data['bio'] != null
+                  ? Text(
+                      '${widget.data['bio']}',
+                      style: const TextStyle(color: Colors.white),
+                    )
+                  : Container(),
+              const SizedBox(
+                height: 10,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  widget.data['distance'] != null
+                      ? GestureDetector(
+                          onTap: () {
+                            print({
+                              widget.data['latitude'],
+                              widget.data['longitude']
+                            });
+                            openGoogleMaps(widget.data['latitude'],
+                                widget.data['longitude']);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(4),
+                                color: Colors.red),
+                            child: Text(
+                              '${widget.data['distance']} km',
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        )
+                      : Container(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(4),
+                              color: Colors.red),
+                          child: const Icon(
+                            Icons.location_off,
+                            size: 20,
+                            color: Colors.white,
+                          )),
+                  GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => UserProfile(
+                                      id: widget.data['id'],
+                                    )));
+                      },
+                      child: Container(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 255, 64, 64),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Row(
+                            children: [
+                              Text("view profile",
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white)),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                                color: Colors.white,
+                              )
+                            ],
+                          )))
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );

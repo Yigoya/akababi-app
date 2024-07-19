@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 class UserFriendsPage extends StatelessWidget {
   final List<Map<String, dynamic>> friends;
 
-  UserFriendsPage({required this.friends});
+  const UserFriendsPage({super.key, required this.friends});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Friends'),
+        title: const Text('User Friends'),
       ),
       body: ListView.builder(
         itemCount: friends.length,
@@ -25,8 +25,8 @@ class UserFriendsPage extends StatelessWidget {
               leading: CircleAvatar(
                 backgroundImage: friend["profile_picture"] != null
                     ? NetworkImage(
-                        AuthRepo.SERVER + '/' + friend["profile_picture"])
-                    : NetworkImage('https://source.unsplash.com/random'),
+                        '${AuthRepo.SERVER}/' + friend["profile_picture"])
+                    : const NetworkImage('https://source.unsplash.com/random'),
               ),
               title: Text(friend["full_name"]),
               subtitle: Text(friend["username"]),

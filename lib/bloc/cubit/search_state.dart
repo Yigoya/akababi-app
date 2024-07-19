@@ -8,6 +8,6 @@ final class SearchInitial extends SearchState {}
 final class SearchLoading extends SearchState {}
 
 final class SearchLoaded extends SearchState {
-  final List<Map<String, dynamic>> search;
+  final Map<String, List<Map<String, dynamic>>> search;
   SearchLoaded(this.search);
 }

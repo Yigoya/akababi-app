@@ -1,6 +1,8 @@
-import 'package:akababi/api/google_signin_api.dart';
 import 'package:akababi/component/Error.dart';
+import 'package:akababi/pages/auth/DeactivatedPage.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
+import 'package:akababi/utility.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:akababi/bloc/auth/auth_bloc.dart';
@@ -11,6 +13,7 @@ import 'package:akababi/component/GoogleLogin.dart';
 import 'package:akababi/component/OptionText.dart';
 import 'package:akababi/component/TextInput.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
@@ -31,42 +34,42 @@ class LoginPage extends StatelessWidget {
               children: [
                 Image.asset("assets/image/login.png"),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 25),
+                  padding: const EdgeInsets.symmetric(horizontal: 25),
                   child: Column(
                     children: [
-                      Text(
+                      const Text(
                         "Welcome back",
                         style: TextStyle(
                             fontSize: 40,
-                            color: const Color.fromARGB(255, 255, 156, 7)),
+                            color: Color.fromARGB(255, 255, 156, 7)),
                       ),
                       Text(
                         "enter your information and enjoy your ride",
                         style: TextStyle(
                             fontSize: 15, color: Colors.black.withOpacity(0.7)),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 30,
                       ),
                       ErrorItem(
                         error: state.error,
                         isLoading: state.isLoading,
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 10,
                       ),
                       TextInput(
                           controller: emailController,
                           hint: "Enter your email or phone number",
                           isPass: false),
-                      SizedBox(
+                      const SizedBox(
                         height: 15,
                       ),
                       TextInput(
                           controller: passwordController,
                           hint: "Enter your password",
                           isPass: true),
-                      SizedBox(
+                      const SizedBox(
                         height: 20,
                       ),
                       Row(
@@ -79,17 +82,19 @@ class LoginPage extends StatelessWidget {
                               text: 'forgot your password ?'),
                           Button(
                               func: () => authBloc.add(LoginEvent(
-                                  emailController.text,
+                                  emailController.text.trim(),
                                   passwordController.text,
                                   context)),
                               text: "Login"),
                         ],
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 20,
                       ),
-                      GoogleLogin(func: () => signIn(context)),
-                      SizedBox(
+                      GoogleLogin(
+                          text: "sign in with google",
+                          func: () => signIn(context)),
+                      const SizedBox(
                         height: 10,
                       ),
                       OptionText(
@@ -97,7 +102,7 @@ class LoginPage extends StatelessWidget {
                             Navigator.pushNamed(context, '/signup');
                           },
                           text: 'create new account'),
-                      SizedBox(
+                      const SizedBox(
                         height: 30,
                       ),
                       // BlocListener<AuthBloc, AuthState>(
@@ -115,11 +120,11 @@ class LoginPage extends StatelessWidget {
             ),
           );
         } else if (state is LoadingState) {
-          return Center(child: const CircularProgressIndicator.adaptive());
+          return const Center(child: CircularProgressIndicator.adaptive());
           // } else if (state is LoginState) {
           //   return Center(child: Text(state.token));
         } else {
-          return Text("error");
+          return const Text("error");
         }
       },
     ));
@@ -128,28 +133,50 @@ class LoginPage extends StatelessWidget {
   Future signIn(BuildContext context) async {
     AuthRepo authRepo = AuthRepo();
     await GoogleSignIn().signOut();
-    GoogleSignInAccount? _googleSignIn = await GoogleSignIn().signIn();
+    GoogleSignInAccount? googleSignIn = await GoogleSignIn().signIn();
 
-    if (_googleSignIn != null) {
-      print('###############');
-      print(_googleSignIn.email);
-      final auth = await _googleSignIn.authentication;
+    if (googleSignIn != null) {
+      print(googleSignIn.id);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('googleId', googleSignIn.id);
       try {
         final user = await authRepo.signinWithGoogle(
-            _googleSignIn.id,
-            _googleSignIn.email,
-            _googleSignIn.displayName!,
-            _googleSignIn.photoUrl);
-        final res = await authRepo.setUser(user!);
+            googleSignIn.id,
+            googleSignIn.email,
+            googleSignIn.displayName!,
+            googleSignIn.photoUrl);
+        if (user != null) {
+          if (user.status == 'deactivated') {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const DeactivatedPage()));
+          } else if (user.status == 'deleted') {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('User deleted'),
+            ));
+          } else {
+            final res = await authRepo.setUser(user);
+            Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+          }
+        } else {
+          // ignore: use_build_context_synchronously
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('User not found'),
+          ));
+        }
       } catch (err) {
-        print('The error $err');
+        if (err is DioException) {
+          String error = handleDioError(err);
+          print(error);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Email Account already exist Signed in with email'),
+          ));
+        }
+        // print('The error $err');
       }
-      Navigator.pushNamed(context, '/');
     } else {
-      print(
-          '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2');
-      // print(auth.accessToken);
-      print(_googleSignIn!.photoUrl);
+      print(googleSignIn!.photoUrl);
     }
   }
 }

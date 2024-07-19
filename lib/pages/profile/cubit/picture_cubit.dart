@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/repositiory/UserRepo.dart';
 import 'package:dio/dio.dart';
@@ -63,7 +62,7 @@ class PictureCubit extends Cubit<PictureState> {
       pref.setString('imagePath', savedImage.path);
       final user = await userRepo.setProfilePic(savedImage.path);
       print(user!.profile_picture!);
-      await authRepo.setUser(user!);
+      await authRepo.setUser(user);
       emit(PictureLoaded(imagePath: savedImage.path));
     }
   }

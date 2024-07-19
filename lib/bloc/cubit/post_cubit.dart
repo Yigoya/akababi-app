@@ -2,7 +2,7 @@ import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/repositiory/postRepo.dart';
 import 'package:akababi/utility.dart';
 import 'package:bloc/bloc.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/cupertino.dart';
 
 part 'post_state.dart';
 
@@ -10,10 +10,14 @@ class PostCubit extends Cubit<PostState> {
   final authRepo = AuthRepo();
   PostCubit() : super(PostInitial());
 
-  void loadPostById() async {
-    emit(PostLoading(posts: []));
+  Future<void> loadPostById(BuildContext context) async {
+    emit(PostLoading());
     final user = await authRepo.user;
-    final location = await getCurrentLocation();
+    if (user == null) {
+      Navigator.of(context, rootNavigator: true).pushNamed('/login');
+      return;
+    }
+    final location = await getCurrentLocation(context);
     final post = await PostRepo()
         .getPostsByUserId(user!.id, location!.longitude, location.latitude);
     emit(PostLoaded(post));
@@ -25,26 +29,31 @@ class PostCubit extends Cubit<PostState> {
     await PostRepo().setReaction(data);
   }
 
-  void getPostById(int id) async {
-    if (state is PostLoaded) {
-      final posts = (state as PostLoaded).posts;
-      emit(PostLoading(posts: posts));
-      final post = await PostRepo().getPostById(id);
-      emit(SinglePostLoaded(post, posts));
-    } else {
-      final post = await PostRepo().getPostById(id);
-      emit(SinglePostLoaded(post, []));
-    }
-  }
-
-  void setComment(Map<String, dynamic> data) async {
+  Future<bool> repostPost(Map<String, dynamic> data) async {
     final user = await authRepo.user;
     data['user_id'] = user!.id;
-    if (state is SinglePostLoaded) {
-      final posts = (state as SinglePostLoaded).posts;
-      emit(PostLoading(posts: posts));
-      final post = await PostRepo().setComment(data);
-      emit(SinglePostLoaded(post, posts));
-    }
+    return await PostRepo().repostPost(data);
+  }
+
+  Future<bool> savePost(Map<String, dynamic> data) async {
+    final user = await authRepo.user;
+    data['user_id'] = user!.id;
+    return await PostRepo().savePost(data);
+  }
+
+  Future<bool> reportPost(Map<String, dynamic> data) async {
+    final user = await authRepo.user;
+    data['reported_by'] = user!.id;
+    return await PostRepo().reportPost(data);
+  }
+
+  Future<bool> deletePost(int id) async {
+    return await PostRepo().deletePost(id);
+  }
+
+  Future<bool> editPost(Map<String, dynamic> data) async {
+    final user = await authRepo.user;
+    data['user_id'] = user!.id;
+    return await PostRepo().editPost(data);
   }
 }

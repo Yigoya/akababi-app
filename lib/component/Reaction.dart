@@ -1,5 +1,4 @@
 import 'package:akababi/bloc/cubit/post_cubit.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -34,13 +33,17 @@ class _ReactionState extends State<Reaction> {
     'angry'
   ];
   int index = 0;
-  double iconSize = 30;
+  double iconSize = 24;
   int like = 0;
   var reaction;
   @override
-  Widget build(BuildContext context) {
+  void initState() {
     reaction = widget.reaction;
+    super.initState();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     if (reaction == null) {
     } else {
       switch (reaction['reaction_type']) {
@@ -188,7 +191,11 @@ class _ReactionState extends State<Reaction> {
                   height: iconSize,
                 ),
               ),
-              Text((widget.likes + like).toString())
+              const SizedBox(width: 8),
+              Text(
+                (widget.likes + like).toString(),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w400),
+              )
             ],
           ),
         ),
@@ -197,6 +204,7 @@ class _ReactionState extends State<Reaction> {
   }
 
   void react(int i) {
+    print(reaction);
     setState(() {
       reaction['reaction_type'] = reactionType[i];
       if (index == 0) {

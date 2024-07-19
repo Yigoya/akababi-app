@@ -1,6 +1,6 @@
-import 'package:akababi/bloc/cubit/post_cubit.dart';
+import 'package:akababi/bloc/cubit/single_post_cubit.dart';
 import 'package:akababi/component/PostItem.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,14 +13,15 @@ class SinglePostPage extends StatefulWidget {
 }
 
 class _SinglePostPageState extends State<SinglePostPage> {
+  String title = 'Post';
   @override
   void initState() {
     super.initState();
-    context
-        .read<PostCubit>()
-        .getPostById(widget.id); // Replace 1 with the actual post ID
+    context.read<SinglePostCubit>().getPostById(widget.id);
   }
 
+  var longitute = 7.49508;
+  var latitude = 9.05785;
   @override
   Widget build(BuildContext context) {
     final TextEditingController controller = TextEditingController();
@@ -28,20 +29,52 @@ class _SinglePostPageState extends State<SinglePostPage> {
     return Scaffold(
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
-          title: Text('Single Post Page'),
+          title: Text(title),
         ),
         body: SingleChildScrollView(
-          child: BlocBuilder<PostCubit, PostState>(
+          child: BlocBuilder<SinglePostCubit, SinglePostState>(
             builder: (context, state) {
-              if (state is SinglePostLoaded) {
+              if (state is PostLoaded) {
                 var comments = state.post['comment'] as List<dynamic>;
                 return Column(
                   children: [
                     PostItem(post: state.post),
+                    GestureDetector(
+                      onTap: () {
+                        openGoogleMaps(
+                          state.post['longitude'],
+                          state.post['latitude'],
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "See in map",
+                              style:
+                                  TextStyle(fontSize: 20, color: Colors.white),
+                            ),
+                            SizedBox(width: 10),
+                            Icon(
+                              Icons.map,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     state.post['comment'] != null
                         ? ListView.builder(
                             shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
+                            physics: const NeverScrollableScrollPhysics(),
                             itemCount: comments.length,
                             itemBuilder: (context, index) {
                               return ListTile(
@@ -53,7 +86,7 @@ class _SinglePostPageState extends State<SinglePostPage> {
                   ],
                 );
               } else if (state is PostLoading) {
-                return Center(
+                return const Center(
                   child: CircularProgressIndicator(),
                 );
               }
@@ -68,15 +101,15 @@ class _SinglePostPageState extends State<SinglePostPage> {
               Expanded(
                 child: TextField(
                   controller: controller,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Add a comment',
                   ),
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.send),
+                icon: const Icon(Icons.send),
                 onPressed: () {
-                  context.read<PostCubit>().setComment({
+                  context.read<SinglePostCubit>().setComment({
                     'post_id': widget.id,
                     'content': controller.text,
                   });

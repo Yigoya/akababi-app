@@ -12,7 +12,7 @@ class OptionText extends StatelessWidget {
       child: Container(
         child: Text(
           text,
-          style: TextStyle(color: Colors.cyan, fontSize: 15),
+          style: const TextStyle(color: Colors.cyan, fontSize: 15),
         ),
       ),
     );

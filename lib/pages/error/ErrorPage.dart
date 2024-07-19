@@ -26,13 +26,13 @@ class ErrorPage extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          SizedBox(
+          const SizedBox(
             height: 200,
           ),
-          Image.asset(image!),
+          Image.asset(image),
           Text(
             data['msg'],
-            style: TextStyle(fontSize: 20),
+            style: const TextStyle(fontSize: 20),
           )
         ],
       ),
