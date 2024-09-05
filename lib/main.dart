@@ -18,6 +18,7 @@ import 'package:akababi/pages/profile/cubit/picture_cubit.dart';
 import 'package:akababi/pages/profile/cubit/profile_cubit.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/route.dart';
+import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
@@ -182,8 +183,28 @@ class HomePage extends StatefulWidget {
 
 /// The state class for the [HomePage] widget.
 class _HomePageState extends State<HomePage> {
-  final PersistentTabController _controller =
-      PersistentTabController(initialIndex: 0);
+  int previousIndex = 0;
+  void _onItemSelected(int index) async {
+    // Run your function here
+    print("Selected tab: $index");
+    if (index == 0) {
+      bool isAtTop = scrollController.position.atEdge &&
+          scrollController.position.pixels == 0;
+      if (previousIndex == 0) {
+        if (isAtTop) {
+          await BlocProvider.of<PostCubit>(context).getFeed(context);
+        } else {
+          scrollToTop();
+        }
+      }
+    }
+    // Add your custom functionality
+    if (index == 4) {
+      BlocProvider.of<PictureCubit>(context).getImage();
+      BlocProvider.of<ProfileCubit>(context).getUser();
+    }
+    previousIndex = index;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -191,9 +212,10 @@ class _HomePageState extends State<HomePage> {
     //   ..add(LoadUserInfoEvent(context));
     return PersistentTabView(
       context,
-      controller: _controller,
+      controller: pageController,
       screens: _buildScreens(),
       items: _navBarsItems(),
+      onItemSelected: _onItemSelected,
       confineInSafeArea: true,
       backgroundColor: Colors.black, // Default is Colors.white.
       handleAndroidBackButtonPress: true, // Default is true.
@@ -228,9 +250,9 @@ class _HomePageState extends State<HomePage> {
   /// Returns a list of [Widget] objects representing the screens.
   List<Widget> _buildScreens() {
     return [
-      const FeedPage(),
+      FeedPage(),
       NearMePage(),
-      const PostPage(),
+      PostPage(),
       const ChatPage(),
       const ProfilePage()
     ];

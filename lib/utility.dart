@@ -1,12 +1,66 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:akababi/pages/post/SinglePostPage.dart';
+import 'package:akababi/pages/profile/cubit/profile_cubit.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:timeago/timeago.dart' as timeago;
+import 'package:intl/intl.dart';
+import 'package:geocoding/geocoding.dart';
+
+Future<Map<String, String>?> getCityAndCountry(
+    double latitude, double longitude) async {
+  try {
+    // Fetch the list of placemarks at the given latitude and longitude
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(latitude, longitude);
+
+    if (placemarks.isNotEmpty) {
+      // Extract city/town and country from the first placemark
+      Placemark place = placemarks.first;
+      String city = place.locality ?? place.subLocality ?? '';
+      String country = place.country ?? '';
+
+      return {
+        'city': city,
+        'country': country,
+      };
+    } else {
+      throw Exception('No placemarks found');
+    }
+  } catch (e) {
+    return null;
+  }
+}
+
+String formatDateTime(String dateString) {
+  final DateTime dateTime = DateTime.parse(dateString);
+  final DateTime now = DateTime.now();
+  final Duration difference = now.difference(dateTime);
+
+  // If the difference is less than a day, use the "time ago" format
+  if (difference.inDays < 1) {
+    return timeago.format(dateTime, locale: 'en_short');
+  } else {
+    // Otherwise, format the date as "21 Jul 2024"
+    final DateFormat formatter = DateFormat('dd MMM yyyy');
+    return formatter.format(dateTime);
+  }
+}
+
+void main() {
+  print(formatDateTime(
+      '2024-07-02T07:11:39.000Z')); // Output: "20 seconds ago" or "21 Jul 2024"
+}
 
 Position defaultLocation = Position(
   longitude: 38.7781448, // Example longitude value
@@ -54,9 +108,9 @@ void openGoogleMaps(double latitude, double longitude) async {
 /// ```dart
 /// Widget postItem = listItem(context, post);
 /// ```
-Widget listItem(BuildContext context, Map<String, dynamic> post) {
+Widget listItem(BuildContext context, Map<String, dynamic> post,
+    {bool? isRepost, int? rePostId}) {
   Map<String, dynamic> media = decodeMedia(post['media']);
-  print(post);
   var isVideo = media['video'] != null;
   var isAudio = media['audio'] != null;
   var isOther = media['other'] != null;
@@ -72,12 +126,14 @@ Widget listItem(BuildContext context, Map<String, dynamic> post) {
   }
   isVideo ? media['thumbnail'] : media['image'];
   return GestureDetector(
-    onTap: () {
-      print(post['id']);
-      Navigator.of(context, rootNavigator: true).push(MaterialPageRoute(
+    onTap: () async {
+      Logger().i(post);
+      await Navigator.of(context, rootNavigator: true).push(MaterialPageRoute(
           builder: (context) => SinglePostPage(
-                id: post['id'],
+                id: isRepost != null && isRepost ? rePostId : post['id'],
+                isRepost: isRepost,
               )));
+      BlocProvider.of<ProfileCubit>(context).getUser();
     },
     child: Stack(
       children: [
@@ -166,8 +222,8 @@ Future<void> _showLocationServiceDialog(BuildContext context) async {
     builder: (BuildContext context) {
       return AlertDialog(
         title: Text('Location Services Disabled'),
-        content:
-            Text('Please enable location services in your device settings.'),
+        content: Text(
+            'Please enable location services in your device settings. After enabling, tap "Settings" to continue. or "Cancel" to dismiss see the result in 30 seconds'),
         actions: <Widget>[
           TextButton(
             child: Text('Cancel'),
@@ -186,6 +242,17 @@ Future<void> _showLocationServiceDialog(BuildContext context) async {
       );
     },
   );
+}
+
+trigerNotification(String title, String body) {
+  AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+    if (!isAllowed) {
+      AwesomeNotifications().requestPermissionToSendNotifications();
+    }
+  });
+  AwesomeNotifications().createNotification(
+      content: NotificationContent(
+          id: 10, channelKey: 'channelKey', title: title, body: body));
 }
 
 /// Waits for the location service to be enabled within the specified [timeout].
@@ -256,7 +323,7 @@ Future<Position?> getCurrentLocation(BuildContext context) async {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text(
-                    'Location services are still disabled. Please enable them to proceed.')),
+                    'Location services are still disabled. Please enable them to get accurate result.')),
           );
 
           return defaultLocation;
@@ -341,4 +408,33 @@ String _handleResponseError(Response response) {
       'Error occured please try again later ${response.statusCode}';
 }
 
+final PersistentTabController pageController =
+    PersistentTabController(initialIndex: 0);
+
 enum ErrorType { timeout, noconnect, pagenotfound }
+
+final ScrollController scrollController = ScrollController();
+
+void scrollToTop() {
+  scrollController.animateTo(
+    0.0,
+    duration: Duration(milliseconds: 300),
+    curve: Curves.easeInOut,
+  );
+}
+
+void jumpToTop() {
+  scrollController.jumpTo(0);
+}
+
+int feedIndex = -1;
+
+int getFeedIndex() {
+  if (feedIndex >= 3) {
+    feedIndex = 0;
+    return feedIndex;
+  } else {
+    feedIndex++;
+    return feedIndex;
+  }
+}

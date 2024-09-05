@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:akababi/bloc/auth/auth_state.dart';
+import 'package:akababi/bloc/cubit/post_cubit.dart';
 import 'package:akababi/component/Header.dart';
 import 'package:akababi/model/User.dart';
 import 'package:akababi/pages/feed/FeedPage.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:open_file/open_file.dart';
@@ -18,7 +20,7 @@ import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 
 class PostPage extends StatefulWidget {
-  const PostPage({super.key});
+  PostPage({Key? key});
 
   @override
   State<PostPage> createState() => _PostPageState();
@@ -95,6 +97,28 @@ class _PostPageState extends State<PostPage> {
 
   void uploadFile(BuildContext context) async {
     try {
+      if (filePath.isEmpty) {
+        setState(() {
+          error = 'Please select a file';
+        });
+        Future.delayed(const Duration(seconds: 3), () {
+          setState(() {
+            error = null;
+          });
+        });
+        return;
+      }
+      if (_textEditingController.text.isEmpty) {
+        setState(() {
+          error = 'Please enter a text';
+        });
+        Future.delayed(const Duration(seconds: 3), () {
+          setState(() {
+            error = null;
+          });
+        });
+        return;
+      }
       setState(() {
         isLoading = true;
       });
@@ -116,17 +140,35 @@ class _PostPageState extends State<PostPage> {
             .post("${AuthRepo.SERVER}/post/createPost", data: formData);
         print(response);
         // Handle the response as needed
-
-        PersistentNavBarNavigator.pushNewScreen(context, screen: const FeedPage());
+        setState(() {
+          filePath = '';
+          fileType = '';
+          mediaType = '';
+        });
+        _textEditingController.clear();
+        trigerNotification("Post Upload", "Post uploaded successfully");
+        await BlocProvider.of<PostCubit>(context).getNewPost();
+        scrollToTop();
+        pageController.jumpToTab(0);
       }
       setState(() {
         isLoading = false;
       });
     } catch (e) {
-      print(e.toString());
-      setState(() {
-        isLoading = false;
-        error = 'An error occurred while uploading the file';
+      if (e is DioException) {
+        String _error = handleDioError(e);
+        print(_error);
+        setState(() {
+          isLoading = false;
+          error = _error;
+        });
+        // final arg = {"type": ErrorType.noconnect, "msg": error};
+        // Navigator.pushNamed(event.context, '/error', arguments: arg);
+      }
+      Future.delayed(const Duration(seconds: 5), () {
+        setState(() {
+          error = null;
+        });
       });
     }
   }
@@ -167,7 +209,37 @@ class _PostPageState extends State<PostPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppHeader(context, "Create post"),
+      appBar: AppBar(
+        title: const Text("Create Post"),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: ElevatedButton(
+              onPressed: () {
+                if (isLoading) {
+                  return;
+                } else {
+                  uploadFile(context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: isLoading
+                    ? Colors.grey[200]
+                    : Colors.blue, // Set the text color
+
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 20, vertical: 10), // Set the button padding
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(8), // Set the button border radius
+                ),
+              ),
+              child: const Text('Upload'),
+            ),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -177,18 +249,35 @@ class _PostPageState extends State<PostPage> {
                   ? const Center(child: CircularProgressIndicator.adaptive())
                   : error != null
                       ? Container(
-                          color: Colors.red,
                           padding: const EdgeInsets.all(8),
                           margin: const EdgeInsets.only(bottom: 10),
-                          child: Text(error!),
+                          decoration: BoxDecoration(
+                              color: Colors.red.shade400,
+                              borderRadius: BorderRadius.circular(8)),
+                          child: Text(error!,
+                              style: const TextStyle(color: Colors.white)),
                         )
                       : Container(),
-              TextField(
-                controller: _textEditingController,
-                decoration: InputDecoration(
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1.0,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 10.0),
+                child: TextField(
+                  autofocus: true,
+                  controller: _textEditingController,
+                  decoration: const InputDecoration(
                     border: InputBorder.none,
-                    hintText: "what is in your mind",
-                    hintStyle: TextStyle(color: Colors.black.withOpacity(0.7))),
+                    hintText: "What's on your mind?",
+                    hintStyle: TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
               ),
               Row(
                 children: [
@@ -223,7 +312,6 @@ class _PostPageState extends State<PostPage> {
                     _showModalBottomSheet(context, false);
                   }, "video", Colors.red.shade400),
                   button(pickAudio, "audio", Colors.yellow.shade400),
-                  button(pickFile, "file", Colors.grey.shade400),
                 ],
               ),
               const SizedBox(
@@ -232,16 +320,10 @@ class _PostPageState extends State<PostPage> {
               Container(
                 child: Text(basename(filePath)),
               ),
-              _ShowSelectedFile()
+              _ShowSelectedFile(),
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          uploadFile(context);
-        },
-        child: const Icon(Icons.upload),
       ),
     );
   }
@@ -280,7 +362,9 @@ class _PostPageState extends State<PostPage> {
         child: const Text('Open audio file'),
       ));
     } else {
-      return const SizedBox.shrink();
+      return const SizedBox(
+        height: 320,
+      );
     }
   }
 
@@ -294,7 +378,9 @@ class _PostPageState extends State<PostPage> {
             children: [
               ListTile(
                 leading: const Icon(Icons.camera),
-                title: isImage ? const Text('Take a photo') : const Text('Take a video'),
+                title: isImage
+                    ? const Text('Take a photo')
+                    : const Text('Take a video'),
                 onTap: () {
                   if (isImage) {
                     pickImage(ImageSource.camera);
@@ -330,7 +416,7 @@ class _PostPageState extends State<PostPage> {
     return GestureDetector(
       onTap: fun,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 38, vertical: 4),
         decoration:
             BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
         child: Text(

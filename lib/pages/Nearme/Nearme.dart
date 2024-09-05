@@ -14,7 +14,7 @@ class NearMePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     BlocProvider.of<PeopleCubit>(context).getPeopleSuggestions(context);
-    BlocProvider.of<PostCubit>(context).loadPostById(context);
+    BlocProvider.of<PostCubit>(context).getFeed(context);
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -22,7 +22,7 @@ class NearMePage extends StatelessWidget {
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             const SliverAppBar(
-              title: Text('Tabs Demo'),
+              title: Text('Near Me'),
               pinned: true,
               floating: true,
               bottom: TabBar(
@@ -84,13 +84,15 @@ class NearMePage extends StatelessWidget {
             ),
             RefreshIndicator(
               onRefresh: () async {
-                BlocProvider.of<PostCubit>(context).loadPostById(context);
+                BlocProvider.of<PostCubit>(context).getFeed(context);
               },
               child: BlocBuilder<PostCubit, PostState>(
                 builder: (context, state) {
                   if (state is PostLoading) {
-                    return ListView(
-                        children: const [PostItemSkeleton(), PostItemSkeleton()]);
+                    return ListView(children: const [
+                      PostItemSkeleton(),
+                      PostItemSkeleton()
+                    ]);
                   } else if (state is PostLoaded) {
                     var posts = state.posts;
                     if (posts.isEmpty) {

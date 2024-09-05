@@ -1,6 +1,7 @@
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/repositiory/PeopleRepo.dart';
 import 'package:akababi/repositiory/UserRepo.dart';
+import 'package:akababi/utility.dart';
 import 'package:bloc/bloc.dart';
 import 'package:logger/logger.dart';
 import 'package:meta/meta.dart';
@@ -24,7 +25,7 @@ class PersonCubit extends Cubit<PersonState> {
     // emit(PeopleLoaded(data:));
   }
 
-  void getPepoleById(int id) async {
+  Future<Map<String, String>?> getPepoleById(int id) async {
     emit(PersonLoading());
     final posts = await userRepo.getUserPost(id);
     final friends = await userRepo.getUserFriend(id);
@@ -34,6 +35,8 @@ class PersonCubit extends Cubit<PersonState> {
 
     final people = await peopleRepo.getPeopleById(user!.id, id);
     emit(PersonLoaded(people, posts, friends));
+    print('${people['latitude']}, ${people['longitude']}');
+    return await getCityAndCountry(people['latitude'], people['longitude']);
   }
 
   Future<bool> blockUser(Map<String, dynamic> data) async {

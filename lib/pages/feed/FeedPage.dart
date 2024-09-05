@@ -4,6 +4,7 @@ import 'package:akababi/bloc/cubit/post_cubit.dart';
 import 'package:akababi/pages/search/SearchPage.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/skeleton/postItemSkeleton.dart';
+import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
 import 'package:akababi/component/PostItem.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,7 +48,7 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   void init() async {
-    await BlocProvider.of<PostCubit>(context).loadPostById(context);
+    await BlocProvider.of<PostCubit>(context).getFeed(context);
     BlocProvider.of<AuthBloc>(context).add(GetLocationEvent(context: context));
     await loadName();
   }
@@ -96,9 +97,10 @@ class _FeedPageState extends State<FeedPage> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          BlocProvider.of<PostCubit>(context).loadPostById(context);
+          BlocProvider.of<PostCubit>(context).getFeed(context);
         },
         child: SingleChildScrollView(
+          controller: scrollController,
           child: Column(
             children: [
               Container(
@@ -120,7 +122,7 @@ class _FeedPageState extends State<FeedPage> {
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.kodchasan(
                                 textStyle: const TextStyle(
-                                    fontSize: 40,
+                                    fontSize: 30,
                                     fontWeight: FontWeight.w500,
                                     color: Color.fromARGB(255, 61, 14, 28)),
                               ),
@@ -129,7 +131,15 @@ class _FeedPageState extends State<FeedPage> {
                         ),
                         Row(
                           children: [
-                            const Text("visibility"),
+                            Column(
+                              children: [
+                                Text("location",
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        color: Color.fromARGB(255, 0, 0, 0)
+                                            .withOpacity(0.5))),
+                              ],
+                            ),
                             SizedBox(
                               height: 20,
                               width: 30,
@@ -160,7 +170,7 @@ class _FeedPageState extends State<FeedPage> {
                     Text("${_greeting()} see what is happening round you",
                         style: GoogleFonts.kodchasan(
                           textStyle: TextStyle(
-                              fontSize: 25,
+                              fontSize: 23,
                               fontWeight: FontWeight.w500,
                               color: const Color.fromARGB(255, 139, 35, 66)
                                   .withOpacity(0.5)),
@@ -183,25 +193,31 @@ class _FeedPageState extends State<FeedPage> {
                         height: 560,
                         color: Colors.white,
                         child: Center(
-                            child: Text("No post found",
+                            child: Text(
+                                "No post found yet please go to search or nearme to find people",
                                 style: GoogleFonts.kodchasan(
                                   textStyle: TextStyle(
-                                      fontSize: 25,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.w500,
                                       color: const Color.fromARGB(255, 0, 0, 0)
                                           .withOpacity(0.5)),
                                 ))),
                       );
                     }
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: posts.length,
-                      itemBuilder: (context, index) {
-                        return PostItem(
-                          post: posts[index],
-                        );
-                      },
+                    return Column(
+                      children: [
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: posts.length,
+                          itemBuilder: (context, index) {
+                            return PostItem(
+                              post: posts[index],
+                            );
+                          },
+                        ),
+                        RefreashFeed(),
+                      ],
                     );
                   } else {
                     return Container();
@@ -211,6 +227,62 @@ class _FeedPageState extends State<FeedPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class RefreashFeed extends StatefulWidget {
+  const RefreashFeed({
+    super.key,
+  });
+
+  @override
+  State<RefreashFeed> createState() => _RefreashFeedState();
+}
+
+class _RefreashFeedState extends State<RefreashFeed> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.check_circle_outline,
+              color: Color.fromARGB(255, 228, 63, 113), size: 60),
+          Text("You're all caught up",
+              style: TextStyle(
+                  fontSize: 25,
+                  color: Color.fromARGB(255, 0, 0, 0).withOpacity(1))),
+          Text(
+              "You have seen all new post from your area and friends from the past ${(feedIndex == -1 ? 1 : feedIndex + 1) * 7} days",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 20,
+                  color: Color.fromARGB(255, 0, 0, 0).withOpacity(0.5))),
+          GestureDetector(
+            onTap: () {
+              scrollToTop();
+              BlocProvider.of<PostCubit>(context)
+                  .getFeed(context, refreach: true);
+            },
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                  color: Color.fromARGB(255, 228, 63, 113),
+                  borderRadius: BorderRadius.circular(20)),
+              child: Text("Refresh",
+                  style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500)),
+            ),
+          )
+        ],
       ),
     );
   }

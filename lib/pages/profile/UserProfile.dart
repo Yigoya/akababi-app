@@ -1,4 +1,5 @@
 import 'package:akababi/bloc/cubit/person_cubit.dart';
+import 'package:akababi/model/User.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
@@ -16,10 +17,24 @@ class UserProfile extends StatefulWidget {
 
 class _UserProfileState extends State<UserProfile> {
   var _error = false;
+  Map<String, String> place = {'city': '', 'country': ''};
+  User? user;
   @override
   void initState() {
     super.initState();
-    BlocProvider.of<PersonCubit>(context).getPepoleById(widget.id);
+    init();
+  }
+
+  void init() async {
+    final _place =
+        await BlocProvider.of<PersonCubit>(context).getPepoleById(widget.id);
+    final _user = await AuthRepo().user;
+    if (_place != null) {
+      setState(() {
+        place = _place;
+        user = _user;
+      });
+    }
   }
 
   @override
@@ -39,6 +54,7 @@ class _UserProfileState extends State<UserProfile> {
 
                 var imageUrl = data['profile_picture'] ??
                     'uploads/image/183be109c77b089a72a693d8fd9e91ef-1000033241.jpg';
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -106,54 +122,61 @@ class _UserProfileState extends State<UserProfile> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        data['bio'] ?? '',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.location_on),
-                          const Text(
-                            'Addis Ababa, Ethiopia',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
+                    data['bio'] != null
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              data['bio'] ?? '',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
-                          ),
-                          const Spacer(),
-                          Row(children: [
-                            Text(
-                              'Open Map',
-                              style: GoogleFonts.aBeeZee(
-                                  textStyle: const TextStyle(fontSize: 22)),
-                            ),
-                            IconButton(
-                                onPressed: () {
-                                  openGoogleMaps(
-                                      data['latitude'], data['longitude']);
-                                },
-                                icon: const Icon(Icons.map_rounded)),
-                          ]),
-                        ],
-                      ),
-                    ),
+                          )
+                        : SizedBox.shrink(),
                     const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: FriendStatusWidget(
-                          friendShipStatus: data['friendShip'],
-                          is_request: data['is_request'],
-                          personId: data['id']),
-                    ),
+                    place['city'] != '' && place['country'] != ''
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.location_on),
+                                Text(
+                                  '${place['city']}, ${place['country']}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Row(children: [
+                                  Text(
+                                    'Open Map',
+                                    style: GoogleFonts.aBeeZee(
+                                        textStyle:
+                                            const TextStyle(fontSize: 22)),
+                                  ),
+                                  IconButton(
+                                      onPressed: () {
+                                        openGoogleMaps(data['latitude'],
+                                            data['longitude']);
+                                      },
+                                      icon: const Icon(Icons.map_rounded)),
+                                ]),
+                              ],
+                            ),
+                          )
+                        : SizedBox.shrink(),
+                    const SizedBox(height: 10),
+                    user != null && user!.id != widget.id
+                        ? Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: FriendStatusWidget(
+                                friendShipStatus: data['friendShip'],
+                                is_request: data['is_request'],
+                                personId: data['id']))
+                        : SizedBox.shrink(),
                     const SizedBox(height: 10),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -274,7 +297,8 @@ class _UserProfileState extends State<UserProfile> {
                     GridView.builder(
                       shrinkWrap: true,
                       itemCount: state.posts.length,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 4,
                         mainAxisSpacing: 4,

@@ -60,6 +60,10 @@ dependencies:
   font_awesome_flutter: ^10.7.0
   uni_links: ^0.5.1
   share_plus: ^9.0.0
+  timeago: ^3.7.0
+  geocoding: ^3.0.0
+  equatable: ^2.0.5
+  visibility_detector: ^0.4.0+2
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,6 @@
+import 'package:akababi/model/User.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
+import 'package:akababi/utility.dart';
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
 
@@ -48,7 +50,9 @@ class PostRepo {
   /// Each map contains key-value pairs of post data, with the keys being strings and the values being dynamic.
   /// Throws an [Exception] if the request fails or if there is a connection issue.
   Future<List<Map<String, dynamic>>> getPostsByUserId(
-      int id, double latitude, double longitude) async {
+      int id, double latitude, double longitude,
+      {bool? refreach}) async {
+    int index = refreach != true ? 0 : getFeedIndex();
     print({
       'id': id,
       'latitude': latitude,
@@ -58,8 +62,14 @@ class PostRepo {
       final response = await _dio.get('$server/post/$id', queryParameters: {
         'latitude': latitude,
         'longitude': longitude,
+        'index': index,
       });
-      logger.d(response.data);
+      logger.d({
+        'latitude': latitude,
+        'longitude': longitude,
+        'index': feedIndex,
+      });
+
       if (response.statusCode! < 400) {
         final data = response.data as List<dynamic>;
         final posts = data.map((json) {
@@ -95,7 +105,7 @@ class PostRepo {
       final response = await _dio.post('$server/post/setReaction', data: data);
 
       logger.d(response.data);
-      if (response.statusCode! < 400) {
+      if (response.statusCode! > 400) {
         throw Exception('Failed to like post');
       }
     } catch (e) {
@@ -108,8 +118,28 @@ class PostRepo {
   /// Returns a [Future] that completes with a [Map] containing the post data.
   /// Throws an [Exception] if the request fails or if the response status code is 400 or higher.
   Future<Map<String, dynamic>> getPostById(int id) async {
+    User? user = await AuthRepo().user;
     try {
-      final response = await _dio.get('$server/post/getPostById/$id');
+      final response =
+          await _dio.get('$server/post/getPostById/$id/${user!.id}');
+      logger.d(response.data);
+      if (response.statusCode! < 400) {
+        final data = response.data as Map<String, dynamic>;
+
+        return data;
+      } else {
+        throw Exception('Failed to search posts by user');
+      }
+    } catch (e) {
+      throw Exception('Failed to connect to the backend');
+    }
+  }
+
+  Future<Map<String, dynamic>> getRepostById(int id) async {
+    User? user = await AuthRepo().user;
+    try {
+      final response =
+          await _dio.get('$server/post/getRepostById/$id/${user!.id}');
       logger.d(response.data);
       if (response.statusCode! < 400) {
         final data = response.data as Map<String, dynamic>;
@@ -150,7 +180,26 @@ class PostRepo {
   /// Throws an [Exception] if the post creation fails.
   Future<bool> savePost(Map<String, dynamic> data) async {
     try {
+      logger.d(data);
       final response = await _dio.post('$server/post/save', data: data);
+      logger.d(response.data);
+      if (response.statusCode! < 300) {
+        final data = response.data as Map<String, dynamic>;
+
+        return true;
+      } else {
+        throw Exception('Failed to create post');
+      }
+    } catch (e) {
+      logger.e('error $e');
+      return false;
+    }
+  }
+
+  Future<bool> unsavePost(Map<String, dynamic> data) async {
+    try {
+      logger.d(data);
+      final response = await _dio.post('$server/post/unsave', data: data);
       logger.d(response.data);
       if (response.statusCode! < 300) {
         final data = response.data as Map<String, dynamic>;
@@ -256,8 +305,21 @@ class PostRepo {
       final response = await _dio.put('$server/post/editPost', data: data);
       logger.d(response.data);
       if (response.statusCode! < 300) {
-        final data = response.data as Map<String, dynamic>;
+        return true;
+      } else {
+        throw Exception('Failed to create post');
+      }
+    } catch (e) {
+      logger.e('error $e');
+      return false;
+    }
+  }
 
+  Future<bool> editRepost(Map<String, dynamic> data) async {
+    try {
+      final response = await _dio.put('$server/post/editRepost', data: data);
+      logger.d(response.data);
+      if (response.statusCode! < 300) {
         return true;
       } else {
         throw Exception('Failed to create post');
@@ -277,8 +339,6 @@ class PostRepo {
       final response = await _dio.delete('$server/post/deletePost/$id');
       logger.d(response.data);
       if (response.statusCode! < 300) {
-        final data = response.data as Map<String, dynamic>;
-
         return true;
       } else {
         throw Exception('Failed to create post');
@@ -286,6 +346,59 @@ class PostRepo {
     } catch (e) {
       logger.e('error $e');
       return false;
+    }
+  }
+
+  Future<bool> deleteRepost(int id) async {
+    try {
+      final response = await _dio.delete('$server/post/deleteRepost/$id');
+      logger.d(response.data);
+      if (response.statusCode! < 300) {
+        return true;
+      } else {
+        throw Exception('Failed to create post');
+      }
+    } catch (e) {
+      logger.e('error $e');
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getNewPost() async {
+    User? user = await AuthRepo().user;
+    try {
+      final response =
+          await _dio.get('$server/post/getNewPostedPost/${user!.id}');
+      logger.d(response.data);
+      if (response.statusCode! < 400) {
+        final data = response.data as Map<String, dynamic>;
+
+        return data;
+      } else {
+        throw Exception('Failed to search posts by user');
+      }
+    } catch (e) {
+      logger.e(e);
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getNewRePost() async {
+    User? user = await AuthRepo().user;
+    try {
+      final response =
+          await _dio.get('$server/post/getNewRePostedPost/${user!.id}');
+      logger.d(response.data);
+      if (response.statusCode! < 400) {
+        final data = response.data as Map<String, dynamic>;
+
+        return data;
+      } else {
+        throw Exception('Failed to search posts by user');
+      }
+    } catch (e) {
+      print(e);
+      return null;
     }
   }
 }

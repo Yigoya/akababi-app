@@ -26,8 +26,6 @@ class _ProfilePageState extends State<ProfilePage>
       setState(() {});
     });
     super.initState();
-    BlocProvider.of<PictureCubit>(context).getImage();
-    BlocProvider.of<ProfileCubit>(context).getUser();
   }
 
   void generateLinkAndShare(int id) {
@@ -97,7 +95,8 @@ class _ProfilePageState extends State<ProfilePage>
                               BlocProvider.of<PictureCubit>(context).setImage();
                             },
                             icon: Container(
-                              decoration: const BoxDecoration(color: Colors.black),
+                              decoration:
+                                  const BoxDecoration(color: Colors.black),
                               child: const Icon(
                                 Icons.person,
                                 size: 150,
@@ -226,7 +225,8 @@ class _ProfilePageState extends State<ProfilePage>
                                           },
                                         );
                                       } else {
-                                        return const Center(child: Text("No Posts"));
+                                        return const Center(
+                                            child: Text("No Posts"));
                                       }
                                     },
                                   ),
@@ -292,7 +292,9 @@ class _ProfilePageState extends State<ProfilePage>
                                                 state.reposted[index];
 
                                             return listItem(
-                                                context, repost["post"]);
+                                                context, repost["post"],
+                                                isRepost: true,
+                                                rePostId: repost["id"]);
                                           },
                                         );
                                       } else {
@@ -383,8 +385,7 @@ class _ProfilePageState extends State<ProfilePage>
                   Text(
                     text,
                     style: const TextStyle(
-                        color: Color.fromARGB(255, 95, 75, 15),
-                        fontSize: 20),
+                        color: Color.fromARGB(255, 95, 75, 15), fontSize: 20),
                   ),
                   const Icon(
                     Icons.keyboard_arrow_right_sharp,

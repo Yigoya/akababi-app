@@ -63,6 +63,17 @@ class UserRepo {
     }
   }
 
+  Future<Map<String, dynamic>> getProfile(int id) async {
+    try {
+      Response res = await dio.get('${AuthRepo.SERVER}/user/getProfile/$id');
+
+      return res.data;
+    } catch (e) {
+      print(e);
+      return {};
+    }
+  }
+
   /// Retrieves the posts of a user with the specified [id].
   ///
   /// Returns a [Future] that completes with a list of maps, where each map represents a post.

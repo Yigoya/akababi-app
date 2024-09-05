@@ -13,6 +13,7 @@ import 'package:akababi/component/GoogleLogin.dart';
 import 'package:akababi/component/OptionText.dart';
 import 'package:akababi/component/TextInput.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatelessWidget {
@@ -131,10 +132,11 @@ class LoginPage extends StatelessWidget {
   }
 
   Future signIn(BuildContext context) async {
+    final logger = Logger();
     AuthRepo authRepo = AuthRepo();
     await GoogleSignIn().signOut();
     GoogleSignInAccount? googleSignIn = await GoogleSignIn().signIn();
-
+    print(googleSignIn);
     if (googleSignIn != null) {
       print(googleSignIn.id);
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -145,6 +147,8 @@ class LoginPage extends StatelessWidget {
             googleSignIn.email,
             googleSignIn.displayName!,
             googleSignIn.photoUrl);
+
+        logger.d(user);
         if (user != null) {
           if (user.status == 'deactivated') {
             Navigator.push(
@@ -176,6 +180,7 @@ class LoginPage extends StatelessWidget {
         // print('The error $err');
       }
     } else {
+      logger.d('google sign in failed');
       print(googleSignIn!.photoUrl);
     }
   }

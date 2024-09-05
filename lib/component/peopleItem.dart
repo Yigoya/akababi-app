@@ -20,7 +20,7 @@ class _PeopleItemState extends State<PeopleItem> {
   Widget build(BuildContext context) {
     if (widget.data['profile_picture'] == null) {
       setState(() {
-        imageUrl = 'assets/image/bgauth.jpg';
+        imageUrl = 'assets/image/defaultprofile.png';
         _isLocalImage = true;
       });
     } else {
@@ -39,7 +39,7 @@ class _PeopleItemState extends State<PeopleItem> {
                     )));
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             image: DecorationImage(
@@ -120,8 +120,8 @@ class _PeopleItemState extends State<PeopleItem> {
                           ),
                         )
                       : Container(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(4),
                               color: Colors.red),
@@ -140,8 +140,8 @@ class _PeopleItemState extends State<PeopleItem> {
                                     )));
                       },
                       child: Container(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
                           decoration: BoxDecoration(
                             color: const Color.fromARGB(255, 255, 64, 64),
                             borderRadius: BorderRadius.circular(20),

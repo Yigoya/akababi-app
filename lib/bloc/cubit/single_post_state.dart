@@ -6,13 +6,17 @@ sealed class SinglePostState {}
 final class SinglePostInitial extends SinglePostState {}
 
 class PostLoading extends SinglePostState {
-  final List<Map<String, dynamic>> post;
-
-  PostLoading({required this.post});
+  PostLoading();
 }
 
 class PostLoaded extends SinglePostState {
   final Map<String, dynamic> post;
 
   PostLoaded(this.post);
+}
+
+class PostError extends SinglePostState {
+  final String error;
+
+  PostError(this.error);
 }

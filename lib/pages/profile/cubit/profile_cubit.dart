@@ -5,6 +5,7 @@ import 'package:akababi/utility.dart';
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 part 'profile_state.dart';
@@ -42,13 +43,27 @@ class ProfileCubit extends Cubit<ProfileState> {
     User? user = await authRepo.user;
     if (user != null) {
       int id = user.id;
-      final friends = await userRepo.getUserFriend(id);
-      final posts = await userRepo.getUserPost(id);
-      final likedPosts = await userRepo.getUserLikedPost();
-      final reposted = await userRepo.getUserReposted(id);
-      final saved = await userRepo.getUserSaved(id);
-      print(reposted.length);
-      emit(ProfileLoaded(user, posts, friends, likedPosts, reposted, saved));
+      final profile = await userRepo.getProfile(id);
+      Logger().d(profile);
+      var list1 = profile['posts'] as List<dynamic>;
+      final posts = list1.map((e) => e as Map<String, dynamic>).toList();
+      var list2 = profile['friends'] as List<dynamic>;
+      final friends = list2.map((e) => e as Map<String, dynamic>).toList();
+      var list3 = profile['likedPosts'] as List<dynamic>;
+      final likedPosts = list3.map((e) => e as Map<String, dynamic>).toList();
+      var list4 = profile['reposted'] as List<dynamic>;
+      final reposted = list4.map((e) => e as Map<String, dynamic>).toList();
+      var list5 = profile['saved'] as List<dynamic>;
+      final saved = list5.map((e) => e as Map<String, dynamic>).toList();
+
+      emit(ProfileLoaded(
+        user,
+        posts,
+        friends,
+        likedPosts,
+        reposted,
+        saved,
+      ));
     } else {
       emit(ProfileError());
     }
