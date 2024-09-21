@@ -1,109 +1,140 @@
 import 'package:flutter/material.dart';
-import 'package:uni_links/uni_links.dart';
-import 'dart:async';
+import 'package:dio/dio.dart';
 
-void main() => runApp(const MyApp());
-
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
-
+class InfiniteScrollExample extends StatefulWidget {
   @override
-  _MyAppState createState() => _MyAppState();
+  _InfiniteScrollExampleState createState() => _InfiniteScrollExampleState();
 }
 
-class _MyAppState extends State<MyApp> {
-  late StreamSubscription<String?> _sub;
+class _InfiniteScrollExampleState extends State<InfiniteScrollExample> {
+  List<dynamic> posts = [];
+  int offset = 0;
+  bool isLoading = false;
+  bool hasMore = true;
+
+  final ScrollController _scrollController = ScrollController();
+  final int limit = 10; // Number of items per page
+  final Dio _dio = Dio();
 
   @override
   void initState() {
     super.initState();
-    _initDeepLinkListener();
-  }
+    _fetchPosts();
 
-  @override
-  void dispose() {
-    _sub.cancel();
-    super.dispose();
-  }
-
-  void _initDeepLinkListener() {
-    _sub = linkStream.listen((String? link) {
-      if (link != null) {
-        _handleDeepLink(link);
+    // Add listener to scroll controller
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent && hasMore && !isLoading) {
+        _fetchPosts(); // Fetch more data when user reaches end of the list
       }
-    }, onError: (err) {
-      print('Failed to receive link: $err');
     });
   }
 
-  void _handleDeepLink(String link) {
-    Uri uri = Uri.parse(link);
-    if (uri.pathSegments.length == 2) {
-      String type = uri.pathSegments[0];
-      String id = uri.pathSegments[1];
+  Future<void> _fetchPosts() async {
+    if (isLoading) return;
 
-      if (type == 'post') {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => PostScreen(postId: id)),
-        );
-      } else if (type == 'user') {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => UserProfileScreen(userId: id)),
-        );
-      }
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await _dio.get(
+        'https://your-backend.com/posts',
+        queryParameters: {
+          'offset': offset,
+          'limit': limit,
+        },
+      );
+      final List<dynamic> newPosts = response.data;
+
+      setState(() {
+        offset += newPosts.length;
+        posts.addAll(newPosts);
+        if (newPosts.length < limit) {
+          hasMore = false; // No more posts to load
+        }
+      });
+    } catch (e) {
+      print('Error fetching posts: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Deep Linking Example'),
-        ),
-        body: const Center(
-          child: Text('Welcome to the app!'),
-        ),
-      ),
-    );
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
-}
-
-class PostScreen extends StatelessWidget {
-  final String postId;
-
-  const PostScreen({super.key, required this.postId});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Post $postId'),
-      ),
-      body: Center(
-        child: Text('Displaying post $postId'),
+      appBar: AppBar(title: Text('Infinite Scroll Example')),
+      body: ListView.builder(
+        controller: _scrollController,
+        itemCount: posts.length + 1,
+        itemBuilder: (context, index) {
+          if (index < posts.length) {
+            return ListTile(
+              title: Text(posts[index]['title']),
+              subtitle: Text(posts[index]['body']),
+            );
+          } else if (hasMore) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(),
+              ),
+            );
+          } else {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('No more posts'),
+              ),
+            );
+          }
+        },
       ),
     );
+  }
+  int? lastPostId;  // Tracks the ID of the last post
+
+Future<void> _fetchPosts2() async {
+  if (isLoading) return;
+
+  setState(() {
+    isLoading = true;
+  });
+
+  try {
+    final response = await _dio.get(
+      'https://your-backend.com/posts',
+      queryParameters: {
+        'lastPostId': lastPostId,  // Pass the last loaded post ID
+        'limit': limit,
+      },
+    );
+    final List<dynamic> newPosts = response.data;
+
+    setState(() {
+      if (newPosts.isNotEmpty) {
+        lastPostId = newPosts.last['id'];  // Update the lastPostId to the latest post ID
+        posts.addAll(newPosts);
+      }
+      if (newPosts.length < limit) {
+        hasMore = false;  // No more posts to load
+      }
+    });
+  } catch (e) {
+    print('Error fetching posts: $e');
+  } finally {
+    setState(() {
+      isLoading = false;
+    });
   }
 }
 
-class UserProfileScreen extends StatelessWidget {
-  final String userId;
-
-  const UserProfileScreen({super.key, required this.userId});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('User Profile $userId'),
-      ),
-      body: Center(
-        child: Text('Displaying profile of user $userId'),
-      ),
-    );
-  }
 }

@@ -6,16 +6,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthRepo {
   final dio = Dio();
-  static bool isServer = true;
-  // static String SERVER = 'http://192.168.76.17:3000';
-  static String SERVER = 'https://api1.myakababi.com';
+  static bool isServer = false;
+  User? auser;
+  static String SERVER = 'http://192.168.45.17:3000';
+  // static String SERVER = 'https://api1.myakababi.com';
 
   /// Retrieves the user from SharedPreferences.
   /// Returns the user object if it exists, otherwise returns null.
   Future<User?> get user async {
+    if (auser != null) return auser;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final value = prefs.getString('user') ?? '';
     if (value == '') return null;
+    auser = User.fromMap(jsonDecode(value));
     return User.fromMap(jsonDecode(value));
   }
 
@@ -41,6 +44,7 @@ class AuthRepo {
   /// ```
   Future<void> setUser(User user) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    auser = user;
     await prefs.setString('user', jsonEncode(user.toMap()));
   }
 

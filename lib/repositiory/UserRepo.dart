@@ -26,10 +26,8 @@ class UserRepo {
   Future<User?> setProfilePic(String filePath) async {
     try {
       final user = await authRepo.user;
-      print(basename(filePath));
       final file = await MultipartFile.fromFile(filePath,
           filename: basename(filePath), contentType: MediaType('image', 'png'));
-      print(file);
       Map<String, dynamic> data = {'file': file, 'id': user!.id};
       FormData formData = FormData.fromMap(data);
 
@@ -39,8 +37,8 @@ class UserRepo {
       return User.fromMap(res.data['user']);
     } catch (e) {
       print(e);
+      return null;
     }
-    return null;
   }
 
   /// Retrieves the list of friends for a given user ID.

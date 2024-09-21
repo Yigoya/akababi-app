@@ -53,17 +53,6 @@ class _FeedPageState extends State<FeedPage> {
     await loadName();
   }
 
-  String _greeting() {
-    var hour = DateTime.now().hour;
-    if (hour < 12) {
-      return "Good Morning";
-    } else if (hour < 18) {
-      return "Good Afternoon";
-    } else {
-      return "Good Evening";
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,15 +120,11 @@ class _FeedPageState extends State<FeedPage> {
                         ),
                         Row(
                           children: [
-                            Column(
-                              children: [
-                                Text("location",
-                                    style: TextStyle(
-                                        fontSize: 15,
-                                        color: Color.fromARGB(255, 0, 0, 0)
-                                            .withOpacity(0.5))),
-                              ],
-                            ),
+                            Text("location",
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    color: Color.fromARGB(255, 0, 0, 0)
+                                        .withOpacity(0.5))),
                             SizedBox(
                               height: 20,
                               width: 30,
@@ -167,14 +152,9 @@ class _FeedPageState extends State<FeedPage> {
                         ),
                       ],
                     ),
-                    Text("${_greeting()} see what is happening round you",
-                        style: GoogleFonts.kodchasan(
-                          textStyle: TextStyle(
-                              fontSize: 23,
-                              fontWeight: FontWeight.w500,
-                              color: const Color.fromARGB(255, 139, 35, 66)
-                                  .withOpacity(0.5)),
-                        )),
+                    const SizedBox(
+                      height: 10,
+                    ),
                   ],
                 ),
               ),

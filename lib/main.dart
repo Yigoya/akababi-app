@@ -197,12 +197,10 @@ class _HomePageState extends State<HomePage> {
           scrollToTop();
         }
       }
-    }
-    // Add your custom functionality
-    if (index == 4) {
+    } else if (index == 4) {
       BlocProvider.of<PictureCubit>(context).getImage();
       BlocProvider.of<ProfileCubit>(context).getUser();
-    }
+    } else if (index == 2) {}
     previousIndex = index;
   }
 
@@ -216,18 +214,14 @@ class _HomePageState extends State<HomePage> {
       screens: _buildScreens(),
       items: _navBarsItems(),
       onItemSelected: _onItemSelected,
+      decoration: NavBarDecoration(
+        border: Border.all(color: Colors.black.withOpacity(0.5)),
+        colorBehindNavBar: Colors.white,
+      ),
       confineInSafeArea: true,
-      backgroundColor: Colors.black, // Default is Colors.white.
       handleAndroidBackButtonPress: true, // Default is true.
       resizeToAvoidBottomInset:
           true, // This needs to be true if you want to move up the screen when keyboard appears. Default is true.
-      stateManagement: true, // Default is true.
-      hideNavigationBarWhenKeyboardShows:
-          true, // Recommended to set 'resizeToAvoidBottomInset' as true while using this argument. Default is true.
-      decoration: NavBarDecoration(
-        borderRadius: BorderRadius.circular(10.0),
-        colorBehindNavBar: Colors.white,
-      ),
       popAllScreensOnTapOfSelectedTab: true,
       popActionScreens: PopActionScreensType.all,
       itemAnimationProperties: const ItemAnimationProperties(
@@ -250,7 +244,7 @@ class _HomePageState extends State<HomePage> {
   /// Returns a list of [Widget] objects representing the screens.
   List<Widget> _buildScreens() {
     return [
-      FeedPage(),
+      const FeedPage(),
       NearMePage(),
       PostPage(),
       const ChatPage(),
@@ -267,36 +261,33 @@ class _HomePageState extends State<HomePage> {
     return [
       PersistentBottomNavBarItem(
         icon: const Icon(FeatherIcons.home),
-        title: ("Home"),
-        activeColorPrimary: Colors.white,
-        inactiveColorPrimary: Colors.grey,
+        activeColorPrimary: Colors.black,
+        inactiveColorPrimary: Colors.grey[800],
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(FeatherIcons.compass),
-        title: ("Near Me"),
-        activeColorPrimary: Colors.white,
-        inactiveColorPrimary: Colors.grey,
+        activeColorPrimary: Colors.black,
+        inactiveColorPrimary: Colors.grey[800],
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(
-          FeatherIcons.plusCircle,
-          color: Colors.white,
-        ),
-        title: ("Post"),
+        icon: const Icon(FeatherIcons.plusCircle,
+            color: Color.fromARGB(255, 255, 0, 0), size: 36),
         activeColorPrimary: Colors.blue,
-        inactiveColorPrimary: Colors.grey,
+        inactiveColorPrimary: Colors.grey[800],
+        onPressed: (p0) {
+          Navigator.of(context, rootNavigator: true)
+              .push(MaterialPageRoute(builder: (context) => PostPage()));
+        },
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(FeatherIcons.messageCircle),
-        title: ("Chat"),
-        activeColorPrimary: Colors.white,
-        inactiveColorPrimary: Colors.grey,
+        activeColorPrimary: Colors.black,
+        inactiveColorPrimary: Colors.grey[800],
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(FeatherIcons.user),
-        title: ("Profile"),
-        activeColorPrimary: Colors.white,
-        inactiveColorPrimary: Colors.grey,
+        activeColorPrimary: Colors.black,
+        inactiveColorPrimary: Colors.grey[800],
       ),
     ];
   }

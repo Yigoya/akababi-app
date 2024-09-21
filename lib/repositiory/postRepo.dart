@@ -49,9 +49,11 @@ class PostRepo {
   /// Returns a [Future] that completes with a list of maps, where each map represents a post.
   /// Each map contains key-value pairs of post data, with the keys being strings and the values being dynamic.
   /// Throws an [Exception] if the request fails or if there is a connection issue.
-  Future<List<Map<String, dynamic>>> getPostsByUserId(
-      int id, double latitude, double longitude,
-      {bool? refreach}) async {
+  Future<Map<String, dynamic>> getPostsByUserId(
+      {required int id,
+      required double latitude,
+      required double longitude,
+      bool? refreach}) async {
     int index = refreach != true ? 0 : getFeedIndex();
     print({
       'id': id,
@@ -71,12 +73,17 @@ class PostRepo {
       });
 
       if (response.statusCode! < 400) {
-        final data = response.data as List<dynamic>;
-        final posts = data.map((json) {
+        final postData = response.data["posts"] as List<dynamic>;
+        final posts = postData.map((json) {
           return json as Map<String, dynamic>;
         }).toList();
 
-        return posts;
+        final peopleData = response.data["posts"] as List<dynamic>;
+        final peoples = peopleData.map((json) {
+          return json as Map<String, dynamic>;
+        }).toList();
+
+        return {"posts": posts, "recommendedPeople": peoples};
       } else {
         throw Exception('Failed to search posts by user');
       }

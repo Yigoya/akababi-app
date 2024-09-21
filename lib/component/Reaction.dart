@@ -47,6 +47,7 @@ class _ReactionState extends State<Reaction>
   final logger = Logger();
   double _scale = 1.0;
   late AnimationController _controller;
+  
   @override
   void initState() {
     setState(() {

@@ -186,7 +186,7 @@ Map<String, dynamic> decodeMedia(dynamic media) {
   if (AuthRepo.isServer) {
     return jsonDecode(media);
   } else {
-    return media as Map<String, dynamic>;
+    return {"image": media};
   }
 }
 

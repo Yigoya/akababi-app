@@ -61,7 +61,7 @@ class PictureCubit extends Cubit<PictureState> {
       final pref = await SharedPreferences.getInstance();
       pref.setString('imagePath', savedImage.path);
       final user = await userRepo.setProfilePic(savedImage.path);
-      print(user!.profile_picture!);
+      if (user == null) return;
       await authRepo.setUser(user);
       emit(PictureLoaded(imagePath: savedImage.path));
     }

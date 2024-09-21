@@ -42,14 +42,10 @@ class User {
   }
 
   factory User.fromMap(Map<String, dynamic> map) {
-    print(map['username']);
     RegExp regExp = RegExp(r"\d{4}-\d{2}-\d{2}");
     String? dateMatch = map['date_of_birth'] != null
         ? regExp.stringMatch(map['date_of_birth'])
         : null;
-    print(dateMatch);
-    // final date = DateTime.parse(map['date_of_birth']);
-    // final formatedDate = '${date.year}-${date.month}-${date.day}';
     return User(
       id: map['id'],
       fullname: map['fullname'],

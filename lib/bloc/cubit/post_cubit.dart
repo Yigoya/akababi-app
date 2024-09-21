@@ -21,10 +21,16 @@ class PostCubit extends Cubit<PostState> {
     }
     final location = await getCurrentLocation(context);
     final post = await PostRepo().getPostsByUserId(
-        user.id, location!.longitude, location.latitude,
+        id: user.id,
+        longitude: location!.longitude,
+        latitude: location.latitude,
         refreach: refreach);
-
-    emit(PostLoaded(post));
+    if (post == null) return;
+    // final listPost = post["posts"] as List<dynamic>;
+    // final posts = listPost.map((e) => e as Map<String, dynamic>).toList();
+    final posts = post["posts"].cast<Map<String, dynamic>>().toList();
+    emit(
+        PostLoaded(posts: posts, recommendedPeople: post["recommendedPeople"]));
   }
 
   Future<void> getNewPost() async {
@@ -34,7 +40,7 @@ class PostCubit extends Cubit<PostState> {
       final posts = (state as PostLoaded).posts;
       posts.insert(0, post);
       logger.i(posts);
-      emit(PostLoaded(posts));
+      emit(PostLoaded(posts: posts));
     }
   }
 
@@ -45,7 +51,7 @@ class PostCubit extends Cubit<PostState> {
       final posts = (state as PostLoaded).posts;
       posts.insert(0, post);
       logger.i(posts);
-      emit(PostLoaded(posts));
+      emit(PostLoaded(posts: posts));
     }
   }
 
@@ -87,7 +93,7 @@ class PostCubit extends Cubit<PostState> {
       for (var i = 0; i < index.length; i++) {
         posts.removeAt(index[i]);
       }
-      emit(PostLoaded(posts));
+      emit(PostLoaded(posts: posts));
     }
     return res;
   }
@@ -101,7 +107,7 @@ class PostCubit extends Cubit<PostState> {
       for (var i = 0; i < index.length; i++) {
         posts.removeAt(index[i]);
       }
-      emit(PostLoaded(posts));
+      emit(PostLoaded(posts: posts));
     }
     return res;
   }
@@ -128,7 +134,7 @@ class PostCubit extends Cubit<PostState> {
         posts[index[i]] = {...posts[index[i]], ...updatedData};
       }
       // logger.d(posts[index[0]]);
-      emit(PostLoaded(posts));
+      emit(PostLoaded(posts: posts));
     }
   }
 
@@ -139,7 +145,7 @@ class PostCubit extends Cubit<PostState> {
       for (var i = 0; i < index.length; i++) {
         posts.removeAt(index[i]);
       }
-      emit(PostLoaded(posts));
+      emit(PostLoaded(posts: posts));
     }
   }
 

@@ -9,6 +9,7 @@ class PostLoading extends PostState {}
 
 class PostLoaded extends PostState {
   final List<Map<String, dynamic>> posts;
+  final List<Map<String, dynamic>> recommendedPeople;
 
-  PostLoaded(this.posts);
+  PostLoaded({required this.posts, this.recommendedPeople = const []});
 }

@@ -1,120 +1,83 @@
 import 'package:flutter/material.dart';
-import 'package:uni_links/uni_links.dart';
-import 'dart:async';
 
-void main() => runApp(const MyApp());
+// Define a custom InheritedWidget to hold the counter value
+class CounterInheritedWidget extends InheritedWidget {
+  final int counter;
+  final Widget child;
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  CounterInheritedWidget({required this.counter, required this.child})
+      : super(child: child);
+
+  // This method allows child widgets to access the counter value
+  static CounterInheritedWidget? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<CounterInheritedWidget>();
+  }
 
   @override
-  _MyAppState createState() => _MyAppState();
+  bool updateShouldNotify(covariant CounterInheritedWidget oldWidget) {
+    // Notify children only when the counter value changes
+    return oldWidget.counter != counter;
+  }
 }
 
-class _MyAppState extends State<MyApp> {
-  late StreamSubscription<String?> _sub;
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
-
+// A StatefulWidget that uses the CounterInheritedWidget to share state
+class CounterApp extends StatefulWidget {
   @override
-  void initState() {
-    super.initState();
-    _initDeepLinkListener();
-    _handleInitialLink();
-  }
+  _CounterAppState createState() => _CounterAppState();
+}
 
-  @override
-  void dispose() {
-    _sub.cancel();
-    super.dispose();
-  }
+class _CounterAppState extends State<CounterApp> {
+  int _counter = 0;
 
-  void _initDeepLinkListener() {
-    _sub = linkStream.listen((String? link) {
-      if (link != null) {
-        _handleDeepLink(link);
-      }
-    }, onError: (err) {
-      print('Failed to receive link: $err');
+  void _incrementCounter() {
+    setState(() {
+      _counter++;
     });
   }
 
-  Future<void> _handleInitialLink() async {
-    try {
-      final initialLink = await getInitialLink();
-      if (initialLink != null) {
-        _handleDeepLink(initialLink);
-      }
-    } catch (e) {
-      print('Failed to receive initial link: $e');
-    }
-  }
-
-  void _handleDeepLink(String link) {
-    Uri uri = Uri.parse(link);
-    if (uri.pathSegments.length == 2) {
-      String type = uri.pathSegments[0];
-      String id = uri.pathSegments[1];
-
-      if (type == 'post') {
-        _navigatorKey.currentState?.push(MaterialPageRoute(
-          builder: (context) => PostScreen(postId: id),
-        ));
-      } else if (type == 'user') {
-        _navigatorKey.currentState?.push(MaterialPageRoute(
-          builder: (context) => UserProfileScreen(userId: id),
-        ));
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: _navigatorKey,
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Deep Linking Example'),
+    return CounterInheritedWidget(
+      counter: _counter,
+      child: Scaffold(
+        appBar: AppBar(title: Text('InheritedWidget Example')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text('The counter value is:'),
+              // Access the counter value from the InheritedWidget
+              CounterValue(),
+            ],
+          ),
         ),
-        body: const Center(
-          child: Text('Welcome to the app!'),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _incrementCounter,
+          tooltip: 'Increment',
+          child: Icon(Icons.add),
         ),
       ),
     );
   }
 }
 
-class PostScreen extends StatelessWidget {
-  final String postId;
-
-  const PostScreen({super.key, required this.postId});
-
+// A widget that reads the counter value from the InheritedWidget
+class CounterValue extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Post $postId'),
-      ),
-      body: Center(
-        child: Text('Displaying post $postId'),
-      ),
+    // Accessing the counter value via CounterInheritedWidget.of
+    final inheritedWidget = CounterInheritedWidget.of(context);
+    final counter = inheritedWidget?.counter ?? 0;
+
+    return Text(
+      '$counter',
+      style: TextStyle(fontSize: 48),
     );
   }
 }
 
-class UserProfileScreen extends StatelessWidget {
-  final String userId;
-
-  const UserProfileScreen({super.key, required this.userId});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('User Profile $userId'),
-      ),
-      body: Center(
-        child: Text('Displaying profile of user $userId'),
-      ),
-    );
-  }
+void main() {
+  runApp(MaterialApp(
+    home: CounterApp(),
+  ));
 }

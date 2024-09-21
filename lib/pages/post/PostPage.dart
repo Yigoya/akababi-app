@@ -1,21 +1,20 @@
 import 'dart:io';
-
+import 'package:flutter/foundation.dart';
+import 'package:pro_image_editor/pro_image_editor.dart';
 import 'package:akababi/bloc/auth/auth_state.dart';
 import 'package:akababi/bloc/cubit/post_cubit.dart';
-import 'package:akababi/component/Header.dart';
 import 'package:akababi/model/User.dart';
-import 'package:akababi/pages/feed/FeedPage.dart';
+import 'package:akababi/pages/post/EditImage.dart';
+import 'package:akababi/pages/post/utilities.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:open_file/open_file.dart';
 import 'package:dio/dio.dart';
 import 'package:path/path.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 
@@ -28,76 +27,14 @@ class PostPage extends StatefulWidget {
 
 class _PostPageState extends State<PostPage> {
   String dropdownValue = 'public';
-  String filePath = '';
-  String fileType = '';
-  String mediaType = '';
-  Future<void> pickImage(ImageSource imageSource) async {
-    final picker = ImagePicker();
-    final image = await picker.pickImage(source: imageSource);
+  User? user;
+  bool _switchValue = true;
 
-    if (image != null) {
-      String fileExtension = extension(image.path);
-
-      setState(() {
-        filePath = image.path;
-        fileType = 'image';
-        mediaType = 'image $fileExtension';
-      });
-    }
-  }
-
-  void pickVideo(ImageSource imageSource) async {
-    final picker = ImagePicker();
-    final video = await picker.pickVideo(source: imageSource);
-    if (video != null) {
-      String fileExtension = extension(video.path);
-
-      setState(() {
-        filePath = video.path;
-        fileType = 'video';
-        mediaType = 'video $fileExtension';
-      });
-    }
-  }
-
-  void pickAudio() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.audio,
-    );
-    if (result != null) {
-      PlatformFile file = result.files.first;
-      String fileExtension = extension(file.path!);
-      setState(() {
-        filePath = file.path!;
-        fileType = 'audio';
-        mediaType = 'audio $fileExtension';
-      });
-    }
-  }
-
-  void pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-
-    if (result != null) {
-      PlatformFile file = result.files.first;
-      String fileExtension = extension(file.path!);
-      setState(() {
-        filePath = file.path!;
-        fileType = 'file';
-        mediaType = 'application $fileExtension';
-      });
-      // FormData formData = FormData.fromMap({
-      //   "file": await MultipartFile.fromFile(file.path),
-      // });
-      // Response response = await Dio().post("your_backend_url", data: formData);
-      // // Handle the response as needed
-      // // Do something with the picked file
-    }
-  }
-
+  final mediaPicker = MediaPicker();
+  final mediaProcessing = MediaProcessing();
   void uploadFile(BuildContext context) async {
     try {
-      if (filePath.isEmpty) {
+      if (selectedMedia["filePath"].isEmpty) {
         setState(() {
           error = 'Please select a file';
         });
@@ -124,16 +61,18 @@ class _PostPageState extends State<PostPage> {
       });
       User? user = await authRepo.user;
       final loc = await getCurrentLocation(context);
-      if (filePath.isNotEmpty) {
+      if (selectedMedia["filePath"].isNotEmpty) {
         FormData formData = FormData.fromMap({
           "user_id": user!.id,
           "longitude": loc!.longitude,
           "latitude": loc.latitude,
           "privacy_setting": dropdownValue,
           "content": _textEditingController.text,
-          fileType: await MultipartFile.fromFile(filePath,
-              contentType:
-                  MediaType(mediaType.split(' ')[0], mediaType.split(' ')[1])),
+          selectedMedia["fileType"]: await MultipartFile.fromFile(
+              selectedMedia["filePath"],
+              contentType: selectedMedia["MediaType"](
+                  selectedMedia["mediaType"].split(' ')[0],
+                  selectedMedia["mediaType"].split(' ')[1])),
         });
         print(formData);
         Response response = await Dio()
@@ -141,9 +80,9 @@ class _PostPageState extends State<PostPage> {
         print(response);
         // Handle the response as needed
         setState(() {
-          filePath = '';
-          fileType = '';
-          mediaType = '';
+          selectedMedia["filePath"] = '';
+          selectedMedia["fileType"] = '';
+          selectedMedia["mediaType"] = '';
         });
         _textEditingController.clear();
         trigerNotification("Post Upload", "Post uploaded successfully");
@@ -174,7 +113,7 @@ class _PostPageState extends State<PostPage> {
   }
 
   void openFile() async {
-    OpenFile.open(filePath);
+    OpenFile.open(selectedMedia["filePath"]);
   }
 
   late VideoPlayerController _videoPlayerController;
@@ -184,8 +123,7 @@ class _PostPageState extends State<PostPage> {
   String? error;
   @override
   void initState() {
-    super.initState();
-
+    init();
     _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(
         'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4'))
       ..initialize().then((_) {
@@ -197,6 +135,11 @@ class _PostPageState extends State<PostPage> {
           );
         });
       });
+    super.initState();
+  }
+
+  void init() async {
+    user = await authRepo.user;
   }
 
   @override
@@ -245,6 +188,129 @@ class _PostPageState extends State<PostPage> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundImage: (user != null) &&
+                            (user?.profile_picture != null)
+                        ? NetworkImage(
+                            '${AuthRepo.SERVER}/${user!.profile_picture!}')
+                        : const AssetImage('assets/image/defaultprofile.png')
+                            as ImageProvider,
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(user?.fullname ?? ''),
+                      Row(
+                        children: [
+                          Container(
+                            height: 30,
+                            padding: const EdgeInsets.only(left: 15),
+                            decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(8)),
+                            child: DropdownButton<String>(
+                              dropdownColor: Colors.amber,
+                              iconSize: 35,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(16)),
+                              value: dropdownValue,
+                              underline: const SizedBox(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  dropdownValue = newValue!;
+                                });
+                              },
+                              items: <String>[
+                                'public',
+                                'private',
+                                'friends_only'
+                              ].map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(
+                                    value,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 18),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Text("location",
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      color: Color.fromARGB(255, 0, 0, 0)
+                                          .withOpacity(0.5))),
+                              SizedBox(
+                                height: 20,
+                                width: 30,
+                                child: FittedBox(
+                                  fit: BoxFit.fill,
+                                  child: Switch(
+                                      value: _switchValue,
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          _switchValue = newValue;
+                                        });
+                                      }),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Container(
+                        margin: EdgeInsets.symmetric(vertical: 20),
+                        width: 180,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            GestureDetector(
+                              onTap: () async {
+                                await mediaPicker.pickImage(ImageSource.camera);
+                                setState(() {});
+                              },
+                              child: Icon(Icons.camera_alt_outlined),
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                await mediaPicker
+                                    .pickImage(ImageSource.gallery);
+                                setState(() {});
+                              },
+                              child: Icon(Icons.image),
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                await mediaPicker.pickAudio();
+                                setState(() {});
+                              },
+                              child: Icon(Icons.mic),
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                await mediaPicker
+                                    .pickVideo(ImageSource.gallery);
+                                setState(() {});
+                              },
+                              child: Icon(Icons.play_circle_outline_outlined),
+                            )
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              ),
               isLoading && error == null
                   ? const Center(child: CircularProgressIndicator.adaptive())
                   : error != null
@@ -285,40 +351,40 @@ class _PostPageState extends State<PostPage> {
                   const SizedBox(
                     width: 20,
                   ),
-                  DropdownButton<String>(
-                    value: dropdownValue,
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        dropdownValue = newValue!;
-                      });
-                    },
-                    items: <String>['public', 'private', 'friends_only']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
                 ],
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  button(() {
-                    _showModalBottomSheet(context, true);
-                  }, "image", Colors.green.shade400),
-                  button(() {
-                    _showModalBottomSheet(context, false);
-                  }, "video", Colors.red.shade400),
-                  button(pickAudio, "audio", Colors.yellow.shade400),
-                ],
-              ),
+              ElevatedButton(
+                  onPressed: () async {
+                    // Navigator.push(context,
+                    //     MaterialPageRoute(builder: (context) => EditImage()));
+                    // await mediaProcessing
+                    //     .resizeImage(File(selectedMedia["filePath"]));
+                    // setState(() {});
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProImageEditor.network(
+                          'https://picsum.photos/id/237/2000',
+                          callbacks: ProImageEditorCallbacks(
+                            onImageEditingComplete: (Uint8List bytes) async {
+                              /*
+              Your code to handle the edited image. Upload it to your server as an example.
+              You can choose to use await, so that the loading-dialog remains visible until your code is ready, or no async, so that the loading-dialog closes immediately.
+              By default, the bytes are in `jpg` format.
+            */
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text("Edit")),
               const SizedBox(
                 height: 20,
               ),
               Container(
-                child: Text(basename(filePath)),
+                child: Text(basename(selectedMedia["filePath"] ?? "")),
               ),
               _ShowSelectedFile(),
             ],
@@ -329,8 +395,9 @@ class _PostPageState extends State<PostPage> {
   }
 
   Widget _ShowSelectedFile() {
-    if (fileType == 'video') {
-      _videoPlayerController = VideoPlayerController.file(File(filePath));
+    if (selectedMedia["fileType"] == 'video') {
+      _videoPlayerController =
+          VideoPlayerController.file(File(selectedMedia["filePath"]));
 
       _chewieController = ChewieController(
         videoPlayerController: _videoPlayerController,
@@ -343,9 +410,9 @@ class _PostPageState extends State<PostPage> {
           child: Chewie(controller: _chewieController),
         )
       ]);
-    } else if (fileType == 'image') {
-      return Image.file(File(filePath));
-    } else if (fileType == 'file') {
+    } else if (selectedMedia["fileType"] == 'image') {
+      return Image.file(File(selectedMedia["filePath"]));
+    } else if (selectedMedia["fileType"] == 'file') {
       return Container(
           child: ElevatedButton(
         onPressed: () {
@@ -353,7 +420,7 @@ class _PostPageState extends State<PostPage> {
         },
         child: const Text('Open file'),
       ));
-    } else if (fileType == 'audio') {
+    } else if (selectedMedia["fileType"] == 'audio') {
       return Container(
           child: ElevatedButton(
         onPressed: () {
@@ -383,9 +450,9 @@ class _PostPageState extends State<PostPage> {
                     : const Text('Take a video'),
                 onTap: () {
                   if (isImage) {
-                    pickImage(ImageSource.camera);
+                    mediaPicker.pickImage(ImageSource.camera);
                   } else {
-                    pickVideo(ImageSource.camera);
+                    mediaPicker.pickVideo(ImageSource.camera);
                   }
                   Navigator.pop(context);
                 },
@@ -395,9 +462,9 @@ class _PostPageState extends State<PostPage> {
                 title: const Text('Choose from gallery'),
                 onTap: () {
                   if (isImage) {
-                    pickImage(ImageSource.gallery);
+                    mediaPicker.pickImage(ImageSource.gallery);
                   } else {
-                    pickVideo(ImageSource.gallery);
+                    mediaPicker.pickVideo(ImageSource.gallery);
                   }
                   Navigator.pop(context);
                 },
