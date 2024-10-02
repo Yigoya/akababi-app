@@ -2,6 +2,10 @@ import 'package:akababi/bloc/cubit/post_cubit.dart';
 import 'package:akababi/component/PostItem.dart';
 import 'package:akababi/component/peopleItem.dart';
 import 'package:akababi/bloc/cubit/people_cubit.dart';
+import 'package:akababi/component/person_nearme.dart';
+import 'package:akababi/component/post_nearme.dart';
+import 'package:akababi/pages/Nearme/nearme_people_scroll.dart';
+import 'package:akababi/pages/Nearme/nearme_post_scroll.dart';
 import 'package:akababi/skeleton/PeopleItemSkeleton.dart';
 import 'package:akababi/skeleton/postItemSkeleton.dart';
 import 'package:flutter/material.dart';
@@ -13,8 +17,7 @@ class NearMePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    BlocProvider.of<PeopleCubit>(context).getPeopleSuggestions(context);
-    BlocProvider.of<PostCubit>(context).getFeed(context);
+    BlocProvider.of<PeopleCubit>(context).getNearMe(context);
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -40,8 +43,7 @@ class NearMePage extends StatelessWidget {
           children: <Widget>[
             RefreshIndicator(
               onRefresh: () async {
-                BlocProvider.of<PeopleCubit>(context)
-                    .getPeopleSuggestions(context);
+                BlocProvider.of<PeopleCubit>(context).getNearMe(context);
               },
               child: BlocConsumer<PeopleCubit, PeopleState>(
                 builder: (contex, state) {
@@ -64,11 +66,30 @@ class NearMePage extends StatelessWidget {
                             )),
                       );
                     }
-                    return ListView.builder(
-                      itemCount: peoples.length, // total number of items
+                    return GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        childAspectRatio: 0.7,
+                      ),
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: peoples.length,
                       itemBuilder: (context, index) {
-                        return PeopleItem(
-                          data: peoples[index],
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ScrollPeoplePage(
+                                          startIndex: index,
+                                        )));
+                          },
+                          child: ProfileWithDistance(
+                            people: peoples[index],
+                          ),
                         );
                       },
                     );
@@ -84,16 +105,16 @@ class NearMePage extends StatelessWidget {
             ),
             RefreshIndicator(
               onRefresh: () async {
-                BlocProvider.of<PostCubit>(context).getFeed(context);
+                BlocProvider.of<PeopleCubit>(context).getNearMe(context);
               },
-              child: BlocBuilder<PostCubit, PostState>(
+              child: BlocBuilder<PeopleCubit, PeopleState>(
                 builder: (context, state) {
-                  if (state is PostLoading) {
+                  if (state is PeopleLoading) {
                     return ListView(children: const [
                       PostItemSkeleton(),
                       PostItemSkeleton()
                     ]);
-                  } else if (state is PostLoaded) {
+                  } else if (state is PeopleLoaded) {
                     var posts = state.posts;
                     if (posts.isEmpty) {
                       return Center(
@@ -107,13 +128,30 @@ class NearMePage extends StatelessWidget {
                             )),
                       );
                     }
-                    return ListView.builder(
+                    return GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        childAspectRatio: 0.7,
+                      ),
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: posts.length,
                       itemBuilder: (context, index) {
-                        return PostItem(
-                          post: posts[index],
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ScrollPostPage(
+                                          startIndex: index,
+                                        )));
+                          },
+                          child: PostNearMe(
+                            post: posts[index],
+                          ),
                         );
                       },
                     );

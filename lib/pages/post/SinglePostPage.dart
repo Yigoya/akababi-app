@@ -48,14 +48,14 @@ class _SinglePostPageState extends State<SinglePostPage> {
         body: SingleChildScrollView(
           child: BlocConsumer<SinglePostCubit, SinglePostState>(
             listener: (context, state) {
-              if (state is PostLoaded) {
+              if (state is SinglePostLoaded) {
                 setState(() {
                   commentCount = state.post['comment'].length;
                 });
               }
             },
             builder: (context, state) {
-              if (state is PostLoaded) {
+              if (state is SinglePostLoaded) {
                 var comments = state.post['comment'] as List<dynamic>;
                 return Column(
                   children: [
@@ -107,7 +107,7 @@ class _SinglePostPageState extends State<SinglePostPage> {
                         : Container(),
                   ],
                 );
-              } else if (state is PostLoading) {
+              } else if (state is SinglePostLoading) {
                 return PostItemSkeleton();
               } else if (state is PostError) {
                 return Center(
@@ -162,14 +162,14 @@ class _SinglePostPageState extends State<SinglePostPage> {
                   child: IconButton(
                     icon: const Icon(Icons.send, color: Colors.white),
                     onPressed: () {
-                      context.read<SinglePostCubit>().setComment({
-                        'post_id': widget.id,
-                        'content': controller.text,
-                      });
-                      BlocProvider.of<PostCubit.PostCubit>(context)
-                          .updateMapInList(widget.id, {
-                        'comments': commentCount + 1,
-                      });
+                      // context.read<SinglePostCubit>().setComment({
+                      //   'post_id': widget.id,
+                      //   'content': controller.text,
+                      // });
+                      // BlocProvider.of<PostCubit.PostCubit>(context)
+                      //     .updateMapInList(widget.id, {
+                      //   'comments': commentCount + 1,
+                      // });
                       controller.clear();
                       FocusManager.instance.primaryFocus?.unfocus();
                     },

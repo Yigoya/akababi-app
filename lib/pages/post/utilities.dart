@@ -1,12 +1,17 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 
-Map<String, dynamic> selectedMedia = {};
+Map<String, dynamic> selectedMedia = {
+  "filePath": "",
+  "fileType": "",
+  "mediaType": ""
+};
 
 class MediaProcessing {
   final FlutterFFmpeg _ffmpeg = FlutterFFmpeg();
@@ -61,22 +66,27 @@ class MediaProcessing {
     return filteredImageFile;
   }
 
-  Future<String> compressVideo(String inputPath) async {
+  Future<void> compressVideo(String inputPath) async {
+    print("inside compression: $inputPath");
+
+    // Get the output directory
     final directory = await getApplicationDocumentsDirectory();
     final outputPath = '${directory.path}/compressed_video.mp4';
 
-    // FFmpeg command for compressing the video
-    final command = '-i $inputPath -vcodec libx264 -crf 28 $outputPath';
+    // FFmpeg command to compress video
+    // Adjusted to reduce video resolution, bitrate, and quality while maintaining good compression
+    final command =
+        '-i $inputPath -vcodec libx264 -crf 28 -preset veryslow -b:v 1M -vf scale=-2:720 $outputPath';
 
     await _ffmpeg.execute(command).then((rc) {
       if (rc == 0) {
-        print('Compression successful');
+        print('Compression successful: $outputPath');
       } else {
-        print('Error during compression');
+        print('Error during compression: $rc');
       }
     });
 
-    return outputPath;
+    selectedMedia["filePath"] = outputPath;
   }
 
   Future<String> trimVideo(String inputPath, double start, double end) async {
@@ -134,23 +144,49 @@ class MediaProcessing {
     return outputPath;
   }
 
-  Future<void> processMedia(String filePath, String mediaType) async {
-    if (mediaType == 'video') {
-      final compressedVideo = await compressVideo(filePath);
-      final thumbnail = await createVideoThumbnail(compressedVideo);
-    } else if (mediaType == 'image') {
-      final resizedImage = await resizeImage(File(filePath));
-    }
-  }
+  // Future<void> processMedia(String filePath, String mediaType) async {
+  //   if (mediaType == 'video') {
+  //     final compressedVideo = await compressVideo(filePath);
+  //     final thumbnail = await createVideoThumbnail(compressedVideo);
+  //   } else if (mediaType == 'image') {
+  //     final resizedImage = await resizeImage(File(filePath));
+  //   }
+  // }
 
-  Future<File> compressImage(File inputImage, {int quality = 85}) async {
+  Future<void> compressImage(File inputImage,
+      {int quality = 85, int maxWidth = 800, int maxHeight = 800}) async {
     // Read image as bytes
     final imageBytes = inputImage.readAsBytesSync();
+
     // Decode image using the image package
     img.Image image = img.decodeImage(imageBytes)!;
 
+    // Get the original dimensions of the image
+    int originalWidth = image.width;
+    int originalHeight = image.height;
+
+    // Calculate the aspect ratio
+    double aspectRatio = originalWidth / originalHeight;
+
+    // Calculate the new dimensions while maintaining the aspect ratio
+    if (originalWidth > maxWidth || originalHeight > maxHeight) {
+      if (aspectRatio > 1) {
+        // Landscape orientation
+        originalWidth = maxWidth;
+        originalHeight = (maxWidth / aspectRatio).round();
+      } else {
+        // Portrait orientation
+        originalHeight = maxHeight;
+        originalWidth = (maxHeight * aspectRatio).round();
+      }
+    }
+
+    // Resize the image
+    img.Image resizedImage =
+        img.copyResize(image, width: originalWidth, height: originalHeight);
+
     // Compress the image by reducing the quality
-    List<int> compressedBytes = img.encodeJpg(image, quality: quality);
+    List<int> compressedBytes = img.encodeJpg(resizedImage, quality: quality);
 
     // Save compressed image to a file
     final directory = await getTemporaryDirectory();
@@ -158,7 +194,8 @@ class MediaProcessing {
     final compressedImageFile = File(compressedImagePath)
       ..writeAsBytesSync(compressedBytes);
 
-    return compressedImageFile;
+    // You can update the selectedMedia file path here
+    selectedMedia["filePath"] = compressedImageFile.path;
   }
 
   Future<File?> createVideoThumbnail(String videoPath) async {
@@ -235,5 +272,30 @@ class MediaPicker {
         "mediaType": 'application $fileExtension'
       };
     }
+  }
+
+  Future<void> pickMedia(String mediaType, ImageSource imageSource) async {
+    if (mediaType == 'image') {
+      await pickImage(imageSource);
+    } else if (mediaType == 'video') {
+      await pickVideo(imageSource);
+    } else if (mediaType == 'audio') {
+      await pickAudio();
+    } else {
+      await pickFile();
+    }
+  }
+
+  Future<void> saveImageFromBytes(Uint8List imageBytes) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final outputPath =
+        '${directory.path}/edited_image_${DateTime.now().toString()}.jpg';
+    File imageFile = File(outputPath)..writeAsBytesSync(imageBytes);
+    String fileExtension = extension(imageFile.path);
+    selectedMedia = {
+      "filePath": imageFile.path,
+      "fileType": 'image',
+      "mediaType": 'image $fileExtension'
+    };
   }
 }

@@ -15,13 +15,13 @@ class PersonCubit extends Cubit<PersonState> {
   final p = Logger();
   PersonCubit() : super(PersonInitial());
 
-  Future<bool> friendRequest(int userId) async {
+  Future<String> friendRequest(int userId) async {
     return await peopleRepo.friendRequest(userId);
   }
 
-  Future<bool> friendRequestRespond(
-      String response, Map<String, dynamic> data) async {
-    return await peopleRepo.friendRequestRespond(response, data);
+  Future<String> friendRequestRespond(
+      {required int id, required String response}) async {
+    return await peopleRepo.friendRequestRespond(id, response);
     // emit(PeopleLoaded(data:));
   }
 
@@ -45,7 +45,7 @@ class PersonCubit extends Cubit<PersonState> {
     return await peopleRepo.blockUser(data);
   }
 
-  Future<bool> removeFriendRequest(int id) async {
+  Future<String> removeFriendRequest(int id) async {
     final user = await authRepo.user;
     final data = {'user_id': user!.id, 'friend_id': id};
     return await peopleRepo.removeFriendRequest(data);

@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:akababi/bloc/auth/auth_bloc.dart';
+import 'package:akababi/bloc/cubit/comment_cubit.dart';
 import 'package:akababi/bloc/cubit/notification_cubit.dart';
 import 'package:akababi/bloc/cubit/person_cubit.dart';
 import 'package:akababi/bloc/cubit/post_cubit.dart';
 import 'package:akababi/bloc/cubit/search_cubit.dart';
+import 'package:akababi/bloc/cubit/signup_cubit.dart';
 import 'package:akababi/bloc/cubit/single_post_cubit.dart';
 import 'package:akababi/pages/Nearme/Nearme.dart';
 import 'package:akababi/bloc/cubit/people_cubit.dart';
@@ -12,8 +14,8 @@ import 'package:akababi/pages/feed/FeedPage.dart';
 import 'package:akababi/pages/chat/ChatPage.dart';
 import 'package:akababi/pages/post/PostPage.dart';
 import 'package:akababi/pages/post/SinglePostPage.dart';
+import 'package:akababi/pages/profile/PersonProfile.dart';
 import 'package:akababi/pages/profile/ProfilePage.dart';
-import 'package:akababi/pages/profile/UserProfile.dart';
 import 'package:akababi/pages/profile/cubit/picture_cubit.dart';
 import 'package:akababi/pages/profile/cubit/profile_cubit.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
@@ -24,7 +26,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
+import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:uni_links/uni_links.dart';
 
 String initialRoute = '/login';
@@ -132,7 +134,7 @@ class _MyAppState extends State<MyApp> {
         );
       } else if (type == 'user') {
         _navigatorKey.currentState?.push(MaterialPageRoute(
-            builder: (context) => UserProfile(
+            builder: (context) => PersonPage(
                   id: int.parse(id),
                 )));
       }
@@ -145,12 +147,14 @@ class _MyAppState extends State<MyApp> {
     return MultiBlocProvider(
         providers: [
           BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
+          BlocProvider<SignupCubit>(create: (context) => SignupCubit()),
           BlocProvider<PictureCubit>(create: ((context) => PictureCubit())),
           BlocProvider<ProfileCubit>(create: ((context) => ProfileCubit())),
           BlocProvider<PeopleCubit>(create: ((context) => PeopleCubit())),
           BlocProvider<PersonCubit>(create: ((context) => PersonCubit())),
           BlocProvider<SearchCubit>(create: ((context) => SearchCubit())),
           BlocProvider<PostCubit>(create: ((context) => PostCubit())),
+          BlocProvider<CommentCubit>(create: ((context) => CommentCubit())),
           BlocProvider<SinglePostCubit>(
               create: ((context) => SinglePostCubit())),
           BlocProvider<NotificationCubit>(
@@ -218,22 +222,21 @@ class _HomePageState extends State<HomePage> {
         border: Border.all(color: Colors.black.withOpacity(0.5)),
         colorBehindNavBar: Colors.white,
       ),
-      confineInSafeArea: true,
       handleAndroidBackButtonPress: true, // Default is true.
       resizeToAvoidBottomInset:
           true, // This needs to be true if you want to move up the screen when keyboard appears. Default is true.
-      popAllScreensOnTapOfSelectedTab: true,
-      popActionScreens: PopActionScreensType.all,
-      itemAnimationProperties: const ItemAnimationProperties(
-        // Navigation Bar's items animation properties.
-        duration: Duration(milliseconds: 200),
-        curve: Curves.ease,
-      ),
-      screenTransitionAnimation: const ScreenTransitionAnimation(
-        // Screen transition animation on change of selected tab.
-        animateTabTransition: true,
-        curve: Curves.ease,
-        duration: Duration(milliseconds: 200),
+      animationSettings: const NavBarAnimationSettings(
+        navBarItemAnimation: ItemAnimationSettings(
+          // Navigation Bar's items animation properties.
+          duration: Duration(milliseconds: 400),
+          curve: Curves.ease,
+        ),
+        screenTransitionAnimation: ScreenTransitionAnimationSettings(
+          // Screen transition animation on change of selected tab.
+          animateTabTransition: true,
+          duration: Duration(milliseconds: 200),
+          screenTransitionAnimationType: ScreenTransitionAnimationType.fadeIn,
+        ),
       ),
       navBarStyle: NavBarStyle.style6,
     );

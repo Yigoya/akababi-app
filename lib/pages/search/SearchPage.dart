@@ -1,5 +1,6 @@
 import 'package:akababi/bloc/cubit/search_cubit.dart';
-import 'package:akababi/pages/profile/UserProfile.dart';
+import 'package:akababi/pages/profile/PersonProfile.dart';
+import 'package:akababi/pages/profile/UserProfile2.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/skeleton/SearchItemSkeleton.dart';
 import 'package:akababi/utility.dart';
@@ -95,7 +96,7 @@ class _SearchPageState extends State<SearchPage> {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => UserProfile(
+                                    builder: (context) => PersonPage(
                                           id: state.search['user']![index]
                                               ['id'],
                                         )));
@@ -157,7 +158,8 @@ class _SearchPageState extends State<SearchPage> {
                     child: GridView.builder(
                       shrinkWrap: true,
                       itemCount: state.search['post']!.length,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 4,
                         mainAxisSpacing: 4,

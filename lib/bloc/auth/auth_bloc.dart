@@ -46,7 +46,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   UserRepo userRepo = UserRepo();
   AuthBloc() : super(InitialState()) {
     on<InitialEvent>(_initial);
-    on<SignUpEvent>(_signUp);
+    // on<SignUpEvent>(_signUp);
     on<LoginEvent>(_logIn);
     on<EmailVarifyEvent>(_emailVarify);
     on<ForgetPassEmailVarifyEvent>(_forgetPassEmailVarify);
@@ -63,55 +63,56 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(InitialState());
   }
 
-  Future<void> _signUp(SignUpEvent event, Emitter<AuthState> emit) async {
-    emit(GetInfoState(isLoading: true));
-    if (event.password.isEmpty) {
-      emit(GetInfoState(error: "passoword required"));
-      return;
-    }
-    if ((event.password != event.confirm) || event.password.isEmpty) {
-      print(event.password);
-      print(event.confirm);
-      emit(GetInfoState(error: "confirm passoword error"));
-      return;
-    }
-    if (5 > _calculatePasswordStrength(event.password)) {
-      emit(GetInfoState(error: "passoword is Week"));
-      return;
-    }
-    try {
-      final response = await authRepo.signup(
-          event.username,
-          event.email,
-          event.gender,
-          event.password,
-          event.fname,
-          event.lname,
-          event.birthdate);
-      await authRepo.setToken(response['token']);
-      await authRepo.setUser(response['user']);
-      print(await authRepo.token);
+  // Future<void> _signUp(SignUpEvent event, Emitter<AuthState> emit) async {
+  //   emit(GetInfoState(isLoading: true));
+  //   if (event.password.isEmpty) {
+  //     emit(GetInfoState(error: "passoword required"));
+  //     return;
+  //   }
+  //   if ((event.password != event.confirm) || event.password.isEmpty) {
+  //     print(event.password);
+  //     print(event.confirm);
+  //     emit(GetInfoState(error: "confirm passoword error"));
+  //     return;
+  //   }
+  //   if (5 > _calculatePasswordStrength(event.password)) {
+  //     emit(GetInfoState(error: "passoword is Week"));
+  //     return;
+  //   }
+  //   try {
+  //     final response = await authRepo.signup(
+  //         event.username,
+  //         event.email,
+  //         event.gender,
+  //         event.password,
+  //         event.fname,
+  //         event.lname,
+  //         event.birthdate);
+  //     await authRepo.setToken(response['token']);
+  //     await authRepo.setUser(response['user']);
+  //     print(await authRepo.token);
 
-      emit(SignUpState(response['token'], response['user']));
-      trigerNotification(
-          'Registration Success', 'The process of Registration is sucessfull');
-      await Navigator.pushNamedAndRemoveUntil(
-          event.context, "/", (route) => false);
-    } catch (e) {
-      if (e is DioException) {
-        String error = handleDioError(e);
-        print(error);
-        emit(GetInfoState(error: error));
-        // final arg = {"type": ErrorType.noconnect, "msg": error};
-        // Navigator.pushNamed(event.context, '/error', arguments: arg);
-      }
-    }
-  }
+  //     emit(SignUpState(response['token'], response['user']));
+  //     trigerNotification(
+  //         'Registration Success', 'The process of Registration is sucessfull');
+  //     await Navigator.pushNamedAndRemoveUntil(
+  //         event.context, "/", (route) => false);
+  //   } catch (e) {
+  //     if (e is DioException) {
+  //       String error = handleDioError(e);
+  //       print(error);
+  //       emit(GetInfoState(error: error));
+  //       // final arg = {"type": ErrorType.noconnect, "msg": error};
+  //       // Navigator.pushNamed(event.context, '/error', arguments: arg);
+  //     }
+  //   }
+  // }
 
   Future<void> _logIn(LoginEvent event, Emitter<AuthState> emit) async {
     emit(InitialState(isLoading: true));
     try {
-      final response = await authRepo.login(event.email, event.password);
+      final response =
+          await authRepo.login(email: event.email, password: event.password);
       await authRepo.setToken(response['token']);
       await authRepo.setUser(response['user']);
       print(await authRepo.token);

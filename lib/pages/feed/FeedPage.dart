@@ -1,6 +1,11 @@
+import 'dart:math';
+
 import 'package:akababi/bloc/auth/auth_bloc.dart';
 import 'package:akababi/bloc/auth/auth_event.dart';
+import 'package:akababi/bloc/cubit/notification_cubit.dart';
 import 'package:akababi/bloc/cubit/post_cubit.dart';
+import 'package:akababi/component/comment.dart';
+import 'package:akababi/component/person_profile.dart';
 import 'package:akababi/pages/search/SearchPage.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/skeleton/postItemSkeleton.dart';
@@ -50,6 +55,8 @@ class _FeedPageState extends State<FeedPage> {
   void init() async {
     await BlocProvider.of<PostCubit>(context).getFeed(context);
     BlocProvider.of<AuthBloc>(context).add(GetLocationEvent(context: context));
+    BlocProvider.of<NotificationCubit>(context).getNotifications();
+
     await loadName();
   }
 
@@ -76,12 +83,42 @@ class _FeedPageState extends State<FeedPage> {
                         builder: (context) => const SearchPage()));
               },
               icon: const Icon(FeatherIcons.search)),
-          IconButton(
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true)
-                    .pushNamed("/notification");
-              },
-              icon: const Icon(FeatherIcons.bell)),
+          Stack(
+            children: [
+              IconButton(
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true)
+                        .pushNamed("/notification");
+                  },
+                  icon: const Icon(FeatherIcons.bell)),
+              BlocBuilder<NotificationCubit, NotificationState>(
+                builder: (context, state) {
+                  if (state is NotificationLoaded) {
+                    final numOfUnreadNotification =
+                        state.numOfUnreadNotification;
+                    if (numOfUnreadNotification == 0) {
+                      return Container();
+                    }
+
+                    return Positioned(
+                      right: 10,
+                      top: 3,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                            color: Colors.red, shape: BoxShape.circle),
+                        child: Text(
+                          numOfUnreadNotification.toString(),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    );
+                  }
+                  return Container();
+                },
+              )
+            ],
+          ),
         ],
       ),
       body: RefreshIndicator(
@@ -191,12 +228,20 @@ class _FeedPageState extends State<FeedPage> {
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: posts.length,
                           itemBuilder: (context, index) {
+                            final randInt =
+                                Random().nextInt(((index / 2) + 1).toInt());
+                            if (index == randInt &&
+                                state.recommendedPeople.length > 0) {
+                              return RecommendedPeoples(
+                                people: state.recommendedPeople,
+                              );
+                            }
                             return PostItem(
                               post: posts[index],
                             );
                           },
                         ),
-                        RefreashFeed(),
+                        ElevatedButton(onPressed: () {}, child: Text("Comment"))
                       ],
                     );
                   } else {
@@ -207,6 +252,45 @@ class _FeedPageState extends State<FeedPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class RecommendedPeoples extends StatelessWidget {
+  final List<Map<String, dynamic>> people;
+  const RecommendedPeoples({super.key, required this.people});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Suggested people for you'),
+                TextButton(onPressed: () {}, child: const Text('See all')),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 300,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: people.length,
+              itemBuilder: (context, index) {
+                return ProfileWithFollow(
+                  person: people[index],
+                );
+              },
+            ),
+          ),
+          const Divider(),
+        ],
       ),
     );
   }

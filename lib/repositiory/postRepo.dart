@@ -2,10 +2,11 @@ import 'package:akababi/model/User.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/utility.dart';
 import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:logger/logger.dart';
 
 class PostRepo {
-  final Dio _dio = Dio();
+  final Dio _dio = getDio();
   String server = AuthRepo.SERVER;
   final logger = Logger();
 
@@ -72,22 +73,19 @@ class PostRepo {
         'index': feedIndex,
       });
 
-      if (response.statusCode! < 400) {
-        final postData = response.data["posts"] as List<dynamic>;
-        final posts = postData.map((json) {
-          return json as Map<String, dynamic>;
-        }).toList();
+      final postData = response.data["posts"] as List<dynamic>;
+      final posts = postData.map((json) {
+        return json as Map<String, dynamic>;
+      }).toList();
 
-        final peopleData = response.data["posts"] as List<dynamic>;
-        final peoples = peopleData.map((json) {
-          return json as Map<String, dynamic>;
-        }).toList();
+      final peopleData = response.data["recommendedPeople"] as List<dynamic>;
+      final peoples = peopleData.map((json) {
+        return json as Map<String, dynamic>;
+      }).toList();
 
-        return {"posts": posts, "recommendedPeople": peoples};
-      } else {
-        throw Exception('Failed to search posts by user');
-      }
+      return {"posts": posts, "recommendedPeople": peoples};
     } catch (e) {
+      print(e);
       throw Exception('Failed to connect to the backend');
     }
   }
@@ -109,12 +107,10 @@ class PostRepo {
   /// ```
   Future<void> setReaction(Map<String, dynamic> data) async {
     try {
+      logger.d(data);
       final response = await _dio.post('$server/post/setReaction', data: data);
 
       logger.d(response.data);
-      if (response.statusCode! > 400) {
-        throw Exception('Failed to like post');
-      }
     } catch (e) {
       throw Exception('Failed to connect to the backend');
     }
@@ -169,8 +165,6 @@ class PostRepo {
       final response = await _dio.post('$server/post/repost', data: data);
       logger.d(response.data);
       if (response.statusCode! < 400) {
-        final data = response.data as Map<String, dynamic>;
-
         return true;
       } else {
         throw Exception('Failed to create post');
@@ -191,8 +185,6 @@ class PostRepo {
       final response = await _dio.post('$server/post/save', data: data);
       logger.d(response.data);
       if (response.statusCode! < 300) {
-        final data = response.data as Map<String, dynamic>;
-
         return true;
       } else {
         throw Exception('Failed to create post');
@@ -209,8 +201,6 @@ class PostRepo {
       final response = await _dio.post('$server/post/unsave', data: data);
       logger.d(response.data);
       if (response.statusCode! < 300) {
-        final data = response.data as Map<String, dynamic>;
-
         return true;
       } else {
         throw Exception('Failed to create post');
@@ -230,8 +220,6 @@ class PostRepo {
       final response = await _dio.post('$server/post/report', data: data);
       logger.d(response.data);
       if (response.statusCode! < 300) {
-        final data = response.data as Map<String, dynamic>;
-
         return true;
       } else {
         throw Exception('Failed to create post');
@@ -242,37 +230,17 @@ class PostRepo {
     }
   }
 
-  /// Sends a comment to the server and returns the response data.
-  ///
-  /// The [data] parameter is a map containing the comment data.
-  /// The returned value is a map containing the response data from the server.
-  /// Throws an exception if the request fails or if there is a connection issue.
-  Future<Map<String, dynamic>> setComment(Map<String, dynamic> data) async {
-    try {
-      final response = await _dio.post('$server/post/setComment', data: data);
-      logger.d(response.data);
-      if (response.statusCode! < 400) {
-        final data = response.data as Map<String, dynamic>;
-
-        return data;
-      } else {
-        throw Exception('Failed to create post');
-      }
-    } catch (e) {
-      throw Exception('Failed to connect to the backend');
-    }
-  }
-
   /// Retrieves a list of notifications for a user with the given [id].
   ///
   /// Returns a [Future] that completes with a list of [Map<String, dynamic>]
   /// representing the notifications.
   ///
   /// Throws an [Exception] if there is a failure to connect to the backend.
-  Future<List<Map<String, dynamic>>> getNotificationByUserId(int id) async {
+  Future<List<Map<String, dynamic>>> getNotifications() async {
     try {
+      final user = await AuthRepo().user;
       final response =
-          await _dio.get('$server/notification/getNotificationByUserId/$id');
+          await _dio.get('$server/notification/getNotification/${user!.id}');
       logger.d(response.data);
 
       final data = response.data as List<dynamic>;
@@ -303,6 +271,20 @@ class PostRepo {
     }
   }
 
+  Future<bool> SetReadMultipleNotification(String ids) async {
+    try {
+      final response = await _dio.put(
+          '$server/notification/setReadMultipleNotification',
+          data: {'ids': ids});
+      logger.d(response.data);
+
+      return true;
+    } catch (e) {
+      logger.e(e);
+      return false;
+    }
+  }
+
   /// Edits a post with the given [data].
   ///
   /// Returns `true` if the post is successfully edited, otherwise `false`.
@@ -311,11 +293,7 @@ class PostRepo {
     try {
       final response = await _dio.put('$server/post/editPost', data: data);
       logger.d(response.data);
-      if (response.statusCode! < 300) {
-        return true;
-      } else {
-        throw Exception('Failed to create post');
-      }
+      return true;
     } catch (e) {
       logger.e('error $e');
       return false;
@@ -326,11 +304,7 @@ class PostRepo {
     try {
       final response = await _dio.put('$server/post/editRepost', data: data);
       logger.d(response.data);
-      if (response.statusCode! < 300) {
-        return true;
-      } else {
-        throw Exception('Failed to create post');
-      }
+      return true;
     } catch (e) {
       logger.e('error $e');
       return false;
@@ -404,8 +378,199 @@ class PostRepo {
         throw Exception('Failed to search posts by user');
       }
     } catch (e) {
+      logger.e(e);
+      return null;
+    }
+  }
+
+  /// Sends a comment to the server and returns the response data.
+  ///
+  /// The [data] parameter is a map containing the comment data.
+  /// The returned value is a map containing the response data from the server.
+  /// Throws an exception if the request fails or if there is a connection issue.
+  Future<Map<String, dynamic>?> setComment(
+      {required int postId,
+      required String content,
+      String? imagePath,
+      String? audioPath}) async {
+    try {
+      User? user = await AuthRepo().user;
+      final data = {
+        'post_id': postId,
+        'user_id': user!.id,
+        'content': content,
+      };
+      if (imagePath != null) {
+        data['imagePath'] = MultipartFile.fromFile(imagePath,
+            contentType: MediaType('image', 'jpeg'));
+      }
+      if (audioPath != null) {
+        data['audioPath'] = MultipartFile.fromFile(audioPath,
+            contentType: MediaType('audio', 'mpeg'));
+      }
+
+      final formData = FormData.fromMap(data);
+      final response =
+          await _dio.post('$server/post/setComment', data: formData);
+      logger.d(response.data);
+      final comment = response.data as Map<String, dynamic>;
+
+      return comment;
+    } catch (e) {
+      logger.e(e);
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> setCommentReply(
+      {required int commentId,
+      required String replyTo,
+      required int repliedUserId,
+      required String content,
+      String? imagePath,
+      String? audioPath}) async {
+    try {
+      User? user = await AuthRepo().user;
+      final data = {
+        'comment_id': commentId,
+        'user_id': user!.id,
+        'reply_to': replyTo,
+        'replied_user_id': repliedUserId,
+        'content': content,
+      };
+      if (imagePath != null) {
+        data['imagePath'] = MultipartFile.fromFile(imagePath,
+            contentType: MediaType('image', 'jpeg'));
+      }
+      if (audioPath != null) {
+        data['audioPath'] = MultipartFile.fromFile(audioPath,
+            contentType: MediaType('audio', 'mpeg'));
+      }
+
+      final formData = FormData.fromMap(data);
+      final response =
+          await _dio.post('$server/post/setCommentReply', data: formData);
+      logger.d(response.data);
+      final comment = response.data as Map<String, dynamic>;
+
+      return comment;
+    } catch (e) {
+      logger.e(e);
+      return null;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>?> getPostComments(int id) async {
+    User? user = await AuthRepo().user;
+    print(user!.id);
+    try {
+      final response =
+          await _dio.get('$server/post/getPostComments/$id/${user!.id}');
+
+      final data = response.data as List<dynamic>;
+      final comments =
+          data.map((comment) => comment as Map<String, dynamic>).toList();
+      return comments;
+    } catch (e) {
       print(e);
       return null;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>?> getCommentReplies(int id) async {
+    User? user = await AuthRepo().user;
+
+    try {
+      final response =
+          await _dio.get('$server/post/getCommentReplies/$id/${user!.id}');
+
+      final data = response.data as List<dynamic>;
+      final comments =
+          data.map((comment) => comment as Map<String, dynamic>).toList();
+      return comments;
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> updateComment(
+      {required int id, required String content}) async {
+    try {
+      final response = await _dio.put('$server/post/updateComment',
+          data: {'id': id, 'content': content});
+      logger.d(response.data);
+
+      final comments = response.data as Map<String, dynamic>;
+
+      return comments;
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> updateCommentReply(
+      {required int id, required String content}) async {
+    try {
+      final response = await _dio.put('$server/post/updateCommentReply',
+          data: {'id': id, 'content': content});
+      logger.d(response.data);
+
+      final reply = response.data as Map<String, dynamic>;
+      return reply;
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+
+  Future<bool> deleteCommentReply(int id) async {
+    try {
+      final response = await _dio.delete('$server/post/deleteCommentReply/$id');
+      logger.d(response.data);
+      return true;
+    } catch (e) {
+      logger.e(e);
+      return false;
+    }
+  }
+
+  Future<bool> deleteComment(int id) async {
+    try {
+      final response = await _dio.delete('$server/post/deleteComment/$id');
+      logger.d(response.data);
+
+      return true;
+    } catch (e) {
+      print(e);
+      return false;
+    }
+  }
+
+  Future<bool> setCommentLike(int id, String type) async {
+    User? user = await AuthRepo().user;
+    try {
+      final response = await _dio.post('$server/post/setCommentLike',
+          data: {'liked_id': id, 'user_id': user!.id, 'type': type});
+      logger.d(response.data);
+
+      return true;
+    } catch (e) {
+      print(e);
+      return false;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getPostReaction(int id) async {
+    try {
+      final res =
+          await Dio().get('${AuthRepo.SERVER}/post/getPostReaction/$id');
+      final data = res.data as List<dynamic>;
+      final likes = data.map((like) => like as Map<String, dynamic>).toList();
+      return likes;
+    } catch (e) {
+      return [];
     }
   }
 }

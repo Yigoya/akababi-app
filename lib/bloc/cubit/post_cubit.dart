@@ -26,11 +26,8 @@ class PostCubit extends Cubit<PostState> {
         latitude: location.latitude,
         refreach: refreach);
     if (post == null) return;
-    // final listPost = post["posts"] as List<dynamic>;
-    // final posts = listPost.map((e) => e as Map<String, dynamic>).toList();
-    final posts = post["posts"].cast<Map<String, dynamic>>().toList();
-    emit(
-        PostLoaded(posts: posts, recommendedPeople: post["recommendedPeople"]));
+    emit(PostLoaded(
+        posts: post["posts"], recommendedPeople: post["recommendedPeople"]));
   }
 
   Future<void> getNewPost() async {
@@ -154,7 +151,7 @@ class PostCubit extends Cubit<PostState> {
     if (state is PostLoaded) {
       final posts = (state as PostLoaded).posts;
       for (var i = 0; i < posts.length; i++) {
-        if (posts[i]['id'] == id) {
+        if (posts[i]['post_id'] == id) {
           indices.add(i);
         }
       }

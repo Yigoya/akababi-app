@@ -1,21 +1,40 @@
 import 'dart:convert';
-import 'dart:math';
+import 'dart:io';
 
 import 'package:akababi/pages/post/SinglePostPage.dart';
 import 'package:akababi/pages/profile/cubit/profile_cubit.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
+import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:intl/intl.dart';
 import 'package:geocoding/geocoding.dart';
+
+Dio getDio() {
+  final client = HttpClient();
+  client.badCertificateCallback =
+      (X509Certificate cert, String host, int port) {
+    return true; // Accept any certificate during development
+  };
+  var dio = Dio();
+
+  // Use IOHttpClientAdapter to configure the HttpClient
+  dio.httpClientAdapter = IOHttpClientAdapter(
+    createHttpClient: () {
+      return client;
+    },
+  );
+
+  return dio;
+}
 
 Future<Map<String, String>?> getCityAndCountry(
     double latitude, double longitude) async {

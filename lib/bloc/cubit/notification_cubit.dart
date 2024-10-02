@@ -1,6 +1,7 @@
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/repositiory/postRepo.dart';
 import 'package:bloc/bloc.dart';
+import 'package:logger/logger.dart';
 import 'package:meta/meta.dart';
 
 part 'notification_state.dart';
@@ -9,15 +10,32 @@ class NotificationCubit extends Cubit<NotificationState> {
   final authRepo = AuthRepo();
   NotificationCubit() : super(NotificationInitial());
 
-  void getNotificationByUserId() async {
+  void getNotifications() async {
     emit(NotificationLoading());
-    final user = await authRepo.user;
-    final notifications = await PostRepo().getNotificationByUserId(user!.id);
-    emit(NotificationLoaded(notifications: notifications));
+
+    final notifications = await PostRepo().getNotifications();
+    final numOfUnReadNotification = notifications
+        .where((element) => element['is_read'] == false)
+        .toList()
+        .length;
+    emit(NotificationLoaded(
+        notifications: notifications,
+        numOfUnreadNotification: numOfUnReadNotification));
   }
 
-  void deleteNotification(int id) async {
-    print('$id tryyyyyyyyyyyyyyy');
-    await PostRepo().deleteNotification(id);
+  void SetRead(List<int> ids) async {
+    String joinedIds = ids.join(',');
+    await PostRepo().SetReadMultipleNotification(joinedIds);
+    Logger().d(ids);
+    emit(NotificationLoading());
+
+    final notifications = await PostRepo().getNotifications();
+    final numOfUnReadNotification = notifications
+        .where((element) => element['is_read'] == false)
+        .toList()
+        .length;
+    emit(NotificationLoaded(
+        notifications: notifications,
+        numOfUnreadNotification: numOfUnReadNotification));
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:akababi/model/User.dart';
+import 'package:akababi/utility.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,7 +9,8 @@ class AuthRepo {
   final dio = Dio();
   static bool isServer = false;
   User? auser;
-  static String SERVER = 'http://192.168.45.17:3000';
+  String? atoken;
+  static String SERVER = 'http://192.168.231.17:3000';
   // static String SERVER = 'https://api1.myakababi.com';
 
   /// Retrieves the user from SharedPreferences.
@@ -74,12 +76,14 @@ class AuthRepo {
   Future<void> setToken(String token) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
+    atoken = token;
   }
 
   /// Retrieves the token from the shared preferences.
   ///
   /// Returns the token as a [String] if it exists, otherwise returns null.
   Future<String?> get token async {
+    if (atoken != null) return atoken;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
@@ -88,15 +92,14 @@ class AuthRepo {
   ///
   /// Returns a map containing the user information and authentication token.
   /// Throws an exception if the login request fails.
-  Future<Map<String, dynamic>> login(String? email, String password) async {
+  Future<Map<String, dynamic>> login(
+      {required String email, required String password}) async {
     var data = {
-      'email': email!.trim(),
+      'email': email.trim(),
       'password': password,
     };
 
     final res = await dio.post("$SERVER/user/login", data: data);
-
-    print(res.data);
 
     return {'user': User.fromMap(res.data['user']), 'token': res.data['token']};
   }
@@ -208,12 +211,17 @@ class AuthRepo {
     var data = {
       'email': email,
     };
-    print(data);
-    final res = await dio.post("$SERVER/user/sendEmailForSignUp", data: data);
+    try {
+      final res = await dio.post("$SERVER/user/sendEmailForSignUp", data: data);
 
-    print(res.data);
-
-    return res.data;
+      return res.data;
+    } catch (e) {
+      print(e);
+      return {
+        'status': 'error',
+        'message': 'This email is already registered',
+      };
+    }
   }
 
   /// Sends a verification email for password reset to the specified [email].
@@ -235,16 +243,24 @@ class AuthRepo {
   /// Returns a [Future] that completes with a [Map] containing the response data.
   /// The [email] parameter is the email address to verify.
   /// The [code] parameter is the code to be verified.
-  Future<Map<String, dynamic>> codeVarify(String? email, String code) async {
-    var data = {
-      'email': email,
-      'otp': code,
-    };
-    final res = await dio.post("$SERVER/user/VerifyCode", data: data);
+  Future<Map<String, dynamic>> codeVarify(String email, String code) async {
+    try {
+      var data = {
+        'email': email,
+        'otp': code,
+      };
+      final res = await dio.post("$SERVER/user/VerifyCode", data: data);
 
-    print(res);
+      print(res);
 
-    return res.data;
+      return res.data;
+    } catch (e) {
+      print(e);
+      return {
+        'status': 'error',
+        'message': 'Invalid code entered, \ninsert correct code or resend code',
+      };
+    }
   }
 
   /// Signs up a user with the provided information.
@@ -254,28 +270,42 @@ class AuthRepo {
   ///
   /// Returns a [Future] that completes with a [Map] containing the user information and token.
   /// The user information is represented by a [User] object, and the token is a string.
-  Future<Map<String, dynamic>> signup(
-      String username,
-      String email,
-      String gender,
-      String password,
-      String firstName,
-      String lastName,
-      String dateOfBirth) async {
-    var data = {
-      'first_name': firstName,
-      'last_name': lastName,
-      'date_of_birth': dateOfBirth,
-      'gender': gender,
-      'username': username,
-      'email': email.trim(),
-      'password': password,
-    };
-    final res = await dio.post("$SERVER/user/Signup", data: data);
+  Future<Map<String, dynamic>> signup(Map<String, dynamic> map) async {
+    try {
+      print(map);
+      var data = {
+        'first_name': map['firstName'],
+        'last_name': map['lastName'],
+        'date_of_birth': map['birthDate'],
+        'username': map['username'],
+        'email': map['email'],
+        'password': map['password'],
+        'gender': map['gender']
+      };
 
-    print({'user': User.fromMap(res.data['user']), 'token': res.data['token']});
+      final res = await dio.post("$SERVER/user/Signup", data: data);
 
-    return {'user': User.fromMap(res.data['user']), 'token': res.data['token']};
+      print(
+          {'user': User.fromMap(res.data['user']), 'token': res.data['token']});
+
+      return {
+        'user': User.fromMap(res.data['user']),
+        'token': res.data['token']
+      };
+    } catch (e) {
+      if (e is DioException) {
+        String error = handleDioError(e);
+        print(error);
+        return {
+          'status': 'error',
+          'message': error,
+        };
+      }
+      return {
+        'status': 'error',
+        'message': 'check your internet connection',
+      };
+    }
   }
 
   /// Sets the location of the user.

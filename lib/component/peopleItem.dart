@@ -1,4 +1,5 @@
-import 'package:akababi/pages/profile/UserProfile.dart';
+import 'package:akababi/pages/profile/PersonProfile.dart';
+import 'package:akababi/pages/profile/UserProfile2.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +35,7 @@ class _PeopleItemState extends State<PeopleItem> {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => UserProfile(
+                builder: (context) => PersonPage(
                       id: widget.data['id'],
                     )));
       },
@@ -135,7 +136,7 @@ class _PeopleItemState extends State<PeopleItem> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => UserProfile(
+                                builder: (context) => PersonPage(
                                       id: widget.data['id'],
                                     )));
                       },

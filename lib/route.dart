@@ -6,8 +6,9 @@ import 'package:akababi/pages/auth/SignupPage.dart';
 import 'package:akababi/pages/error/ErrorPage.dart';
 import 'package:akababi/pages/notification/NotificationPage.dart';
 import 'package:akababi/pages/post/SinglePostPage.dart';
+import 'package:akababi/pages/profile/PersonProfile.dart';
 import 'package:akababi/pages/profile/ProfilePage.dart';
-import 'package:akababi/pages/profile/UserProfile.dart';
+import 'package:akababi/pages/profile/UserProfile2.dart';
 import 'package:akababi/pages/setting/SettingPage.dart';
 import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
@@ -52,7 +53,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case '/userProfile':
       final id = settings.arguments as int;
       return MaterialPageRoute(
-          settings: settings, builder: (_) => UserProfile(id: id));
+          settings: settings, builder: (_) => PersonPage(id: id));
     case '/error':
       final data = settings.arguments;
       return MaterialPageRoute(

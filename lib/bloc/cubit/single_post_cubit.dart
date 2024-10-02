@@ -9,18 +9,19 @@ part 'single_post_state.dart';
 class SinglePostCubit extends Cubit<SinglePostState> {
   SinglePostCubit() : super(SinglePostInitial());
   final authRepo = AuthRepo();
+  final postRepo = PostRepo();
   void getPostById(int id) async {
     Logger().d('get post by id $id');
     try {
-      if (this.state is PostLoaded) {
-        final post = (this.state as PostLoaded).post;
+      if (this.state is SinglePostLoaded) {
+        final post = (this.state as SinglePostLoaded).post;
         if (post['id'] != id) {
-          emit(PostLoading());
+          emit(SinglePostLoading());
         }
       }
 
-      final post = await PostRepo().getPostById(id);
-      emit(PostLoaded(post));
+      final post = await postRepo.getPostById(id);
+      emit(SinglePostLoaded(post));
     } catch (e) {
       emit(PostError(e.toString()));
     }
@@ -28,15 +29,15 @@ class SinglePostCubit extends Cubit<SinglePostState> {
 
   void getRepostById(int id) async {
     try {
-      if (this.state is PostLoaded) {
-        final post = (this.state as PostLoaded).post;
+      if (this.state is SinglePostLoaded) {
+        final post = (this.state as SinglePostLoaded).post;
         if (post['id'] != id) {
-          emit(PostLoading());
+          emit(SinglePostLoading());
         }
       }
 
-      final post = await PostRepo().getRepostById(id);
-      emit(PostLoaded(post));
+      final post = await postRepo.getRepostById(id);
+      emit(SinglePostLoaded(post));
     } catch (e) {
       emit(PostError(e.toString()));
     }
@@ -45,14 +46,12 @@ class SinglePostCubit extends Cubit<SinglePostState> {
   void setReaction(Map<String, dynamic> data) async {
     final user = await authRepo.user;
     data['user_id'] = user!.id;
-    await PostRepo().setReaction(data);
+    await postRepo.setReaction(data);
   }
 
-  void setComment(Map<String, dynamic> data) async {
-    final user = await authRepo.user;
-    data['user_id'] = user!.id;
-
-    final post = await PostRepo().setComment(data);
-    emit(PostLoaded(post));
+  void getReaction(int id) async {
+    emit(SinglePostLoading());
+    final likes = await postRepo.getPostReaction(id);
+    emit(PostLikesLoaded(likes));
   }
 }

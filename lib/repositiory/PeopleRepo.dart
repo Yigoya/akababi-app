@@ -36,17 +36,17 @@ class PeopleRepo {
 
   /// Sends a friend request to a user with the specified [id].
   /// Returns `true` if the friend request was successfully sent, `false` otherwise.
-  Future<bool> friendRequest(int id) async {
+  Future<String> friendRequest(int id) async {
     try {
       final user = await authRepo.user;
       final data = {'user_id': user!.id, 'friend_id': id};
       final res =
           await dio.post('${AuthRepo.SERVER}/user/friendRequest', data: data);
       logger.d(res.data);
-      return true;
+      return res.data['friendshipStatus'];
     } catch (e) {
       logger.e(e);
-      return false;
+      return 'Follow';
     }
   }
 
@@ -67,19 +67,17 @@ class PeopleRepo {
   /// otherwise it returns false.
   ///
   /// Throws an error if an exception occurs during the process.
-  Future<bool> friendRequestRespond(
-      String response, Map<String, dynamic> data) async {
+  Future<String> friendRequestRespond(int id, String response) async {
     try {
       final user = await authRepo.user;
-      final formData = {...data, 'respond': response};
-      logger.d(formData);
+      final data = {'user_id': user!.id, 'friend_id': id, 'respond': response};
       final res = await dio.post('${AuthRepo.SERVER}/user/friendRequestRespond',
-          data: formData);
+          data: data);
       logger.d(res.data);
-      return true;
+      return res.data['friendshipStatus'];
     } catch (e) {
       logger.e(e);
-      return false;
+      return 'Follow Back';
     }
   }
 
@@ -127,15 +125,26 @@ class PeopleRepo {
   ///
   /// The [data] parameter is a map containing the user ID and friend ID.
   /// Returns `true` if the friend request was successfully removed, `false` otherwise.
-  Future<bool> removeFriendRequest(Map<String, dynamic> data) async {
+  Future<String> removeFriendRequest(Map<String, dynamic> data) async {
     try {
       final res = await dio.delete(
           '${AuthRepo.SERVER}/user/removeFriendRequest/${data['user_id']}/${data['friend_id']}');
       logger.d(res.data);
-      return true;
+      return 'Follow';
     } catch (e) {
       logger.e(e);
-      return false;
+      return 'Following';
+    }
+  }
+
+  Future<Map<String, dynamic>> getNearMe(Map<String, dynamic> data) async {
+    try {
+      final user = await AuthRepo().user;
+      final res = await Dio().get('${AuthRepo.SERVER}/post/nearme/${user!.id}',
+          queryParameters: data);
+      return res.data;
+    } catch (e) {
+      return {"posts": [], "peoples": []};
     }
   }
 }

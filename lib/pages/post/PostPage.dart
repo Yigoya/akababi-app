@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:video_compress/video_compress.dart';
 import 'package:pro_image_editor/pro_image_editor.dart';
 import 'package:akababi/bloc/auth/auth_state.dart';
 import 'package:akababi/bloc/cubit/post_cubit.dart';
 import 'package:akababi/model/User.dart';
-import 'package:akababi/pages/post/EditImage.dart';
+import 'package:akababi/pages/post/VideoEditor.dart';
 import 'package:akababi/pages/post/utilities.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/utility.dart';
@@ -32,97 +33,17 @@ class _PostPageState extends State<PostPage> {
 
   final mediaPicker = MediaPicker();
   final mediaProcessing = MediaProcessing();
-  void uploadFile(BuildContext context) async {
-    try {
-      if (selectedMedia["filePath"].isEmpty) {
-        setState(() {
-          error = 'Please select a file';
-        });
-        Future.delayed(const Duration(seconds: 3), () {
-          setState(() {
-            error = null;
-          });
-        });
-        return;
-      }
-      if (_textEditingController.text.isEmpty) {
-        setState(() {
-          error = 'Please enter a text';
-        });
-        Future.delayed(const Duration(seconds: 3), () {
-          setState(() {
-            error = null;
-          });
-        });
-        return;
-      }
-      setState(() {
-        isLoading = true;
-      });
-      User? user = await authRepo.user;
-      final loc = await getCurrentLocation(context);
-      if (selectedMedia["filePath"].isNotEmpty) {
-        FormData formData = FormData.fromMap({
-          "user_id": user!.id,
-          "longitude": loc!.longitude,
-          "latitude": loc.latitude,
-          "privacy_setting": dropdownValue,
-          "content": _textEditingController.text,
-          selectedMedia["fileType"]: await MultipartFile.fromFile(
-              selectedMedia["filePath"],
-              contentType: selectedMedia["MediaType"](
-                  selectedMedia["mediaType"].split(' ')[0],
-                  selectedMedia["mediaType"].split(' ')[1])),
-        });
-        print(formData);
-        Response response = await Dio()
-            .post("${AuthRepo.SERVER}/post/createPost", data: formData);
-        print(response);
-        // Handle the response as needed
-        setState(() {
-          selectedMedia["filePath"] = '';
-          selectedMedia["fileType"] = '';
-          selectedMedia["mediaType"] = '';
-        });
-        _textEditingController.clear();
-        trigerNotification("Post Upload", "Post uploaded successfully");
-        await BlocProvider.of<PostCubit>(context).getNewPost();
-        scrollToTop();
-        pageController.jumpToTab(0);
-      }
-      setState(() {
-        isLoading = false;
-      });
-    } catch (e) {
-      if (e is DioException) {
-        String _error = handleDioError(e);
-        print(_error);
-        setState(() {
-          isLoading = false;
-          error = _error;
-        });
-        // final arg = {"type": ErrorType.noconnect, "msg": error};
-        // Navigator.pushNamed(event.context, '/error', arguments: arg);
-      }
-      Future.delayed(const Duration(seconds: 5), () {
-        setState(() {
-          error = null;
-        });
-      });
-    }
-  }
-
-  void openFile() async {
-    OpenFile.open(selectedMedia["filePath"]);
-  }
-
+  late Subscription _subscription;
   late VideoPlayerController _videoPlayerController;
   late ChewieController _chewieController;
   final TextEditingController _textEditingController = TextEditingController();
   bool isLoading = false;
+  double progress = 0;
   String? error;
+  String thumbnailFilePath = '';
   @override
   void initState() {
+    super.initState();
     init();
     _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(
         'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4'))
@@ -135,7 +56,12 @@ class _PostPageState extends State<PostPage> {
           );
         });
       });
-    super.initState();
+    _subscription = VideoCompress.compressProgress$.subscribe((progress) {
+      print('progress: $progress');
+      setState(() {
+        this.progress = progress;
+      });
+    });
   }
 
   void init() async {
@@ -146,6 +72,7 @@ class _PostPageState extends State<PostPage> {
   void dispose() {
     _videoPlayerController.dispose();
     _chewieController.dispose();
+    _subscription.unsubscribe();
     super.dispose();
   }
 
@@ -312,7 +239,20 @@ class _PostPageState extends State<PostPage> {
                 ],
               ),
               isLoading && error == null
-                  ? const Center(child: CircularProgressIndicator.adaptive())
+                  ? Column(
+                      children: [
+                        const Center(
+                            child: CircularProgressIndicator.adaptive()),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Uploading ${progress.toStringAsFixed(2)}%',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    )
                   : error != null
                       ? Container(
                           padding: const EdgeInsets.all(8),
@@ -355,29 +295,21 @@ class _PostPageState extends State<PostPage> {
               ),
               ElevatedButton(
                   onPressed: () async {
-                    // Navigator.push(context,
-                    //     MaterialPageRoute(builder: (context) => EditImage()));
-                    // await mediaProcessing
-                    //     .resizeImage(File(selectedMedia["filePath"]));
-                    // setState(() {});
-                    Navigator.push(
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProImageEditor.network(
-                          'https://picsum.photos/id/237/2000',
+                        builder: (context) => ProImageEditor.file(
+                          File(selectedMedia["filePath"]),
                           callbacks: ProImageEditorCallbacks(
                             onImageEditingComplete: (Uint8List bytes) async {
-                              /*
-              Your code to handle the edited image. Upload it to your server as an example.
-              You can choose to use await, so that the loading-dialog remains visible until your code is ready, or no async, so that the loading-dialog closes immediately.
-              By default, the bytes are in `jpg` format.
-            */
+                              await mediaPicker.saveImageFromBytes(bytes);
                               Navigator.pop(context);
                             },
                           ),
                         ),
                       ),
                     );
+                    setState(() {});
                   },
                   child: Text("Edit")),
               const SizedBox(
@@ -394,6 +326,115 @@ class _PostPageState extends State<PostPage> {
     );
   }
 
+  void uploadFile(BuildContext context) async {
+    try {
+      if (selectedMedia["filePath"].isEmpty) {
+        setState(() {
+          error = 'Please select a file';
+        });
+        Future.delayed(const Duration(seconds: 3), () {
+          setState(() {
+            error = null;
+          });
+        });
+        return;
+      }
+      if (_textEditingController.text.isEmpty) {
+        setState(() {
+          error = 'Please enter a text';
+        });
+        Future.delayed(const Duration(seconds: 3), () {
+          setState(() {
+            error = null;
+          });
+        });
+        return;
+      }
+      setState(() {
+        isLoading = true;
+      });
+      print("pass check out next ${selectedMedia["filePath"]}");
+      if (selectedMedia["fileType"] == 'image') {
+        await mediaProcessing.compressImage(File(selectedMedia["filePath"]));
+      } else if (selectedMedia["fileType"] == 'video') {
+        MediaInfo? mediaInfo = await VideoCompress.compressVideo(
+          selectedMedia["filePath"],
+          quality: VideoQuality.DefaultQuality,
+          deleteOrigin: false, // It's false by default
+        );
+        print('${mediaInfo!.path}');
+        selectedMedia["filePath"] = mediaInfo.path;
+
+        print("pass compress video");
+        final thumbnailFile =
+            await VideoCompress.getFileThumbnail(selectedMedia["filePath"],
+                quality: 50, // default(100)
+                position: -1 // default(-1)
+                );
+        setState(() {
+          thumbnailFilePath = thumbnailFile.path;
+        });
+      }
+
+      print("pass compress");
+      final loc = await getCurrentLocation(context);
+      print("pass location");
+      Map<String, dynamic> formDataMap = {
+        "user_id": user!.id,
+        "longitude": loc!.longitude,
+        "latitude": loc.latitude,
+        "privacy_setting": dropdownValue,
+        "content": _textEditingController.text,
+        selectedMedia["fileType"]: await MultipartFile.fromFile(
+            selectedMedia["filePath"],
+            contentType: MediaType(selectedMedia["mediaType"].split(' ')[0],
+                selectedMedia["mediaType"].split(' ')[1])),
+      };
+      if (thumbnailFilePath.isNotEmpty &&
+          selectedMedia["fileType"] == 'video') {
+        formDataMap["thumbnail"] = await MultipartFile.fromFile(
+            thumbnailFilePath,
+            contentType: MediaType('image', 'jpeg'));
+      }
+      FormData formData = FormData.fromMap(formDataMap);
+      print("pass formdata");
+      await Dio().post("${AuthRepo.SERVER}/post/createPost", data: formData);
+      print("pass post");
+      setState(() {
+        selectedMedia = {"filePath": "", "fileType": "", "mediaType": ""};
+        thumbnailFilePath = '';
+      });
+
+      _textEditingController.clear();
+      trigerNotification("Post Upload", "Post uploaded successfully");
+      await BlocProvider.of<PostCubit>(context).getNewPost();
+      scrollToTop();
+      pageController.jumpToTab(0);
+
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      if (e is DioException) {
+        String _error = handleDioError(e);
+        print(_error);
+        setState(() {
+          isLoading = false;
+          error = _error;
+        });
+      }
+      Future.delayed(const Duration(seconds: 5), () {
+        setState(() {
+          error = null;
+        });
+      });
+    }
+  }
+
+  void openFile() async {
+    OpenFile.open(selectedMedia["filePath"]);
+  }
+
   Widget _ShowSelectedFile() {
     if (selectedMedia["fileType"] == 'video') {
       _videoPlayerController =
@@ -403,13 +444,14 @@ class _PostPageState extends State<PostPage> {
         videoPlayerController: _videoPlayerController,
         aspectRatio: _videoPlayerController.value.aspectRatio,
       );
-
-      return Column(children: [
-        AspectRatio(
-          aspectRatio: _videoPlayerController.value.aspectRatio,
-          child: Chewie(controller: _chewieController),
-        )
-      ]);
+      return thumbnailFilePath.isNotEmpty
+          ? Image.file(File(thumbnailFilePath))
+          : Column(children: [
+              AspectRatio(
+                aspectRatio: _videoPlayerController.value.aspectRatio,
+                child: Chewie(controller: _chewieController),
+              )
+            ]);
     } else if (selectedMedia["fileType"] == 'image') {
       return Image.file(File(selectedMedia["filePath"]));
     } else if (selectedMedia["fileType"] == 'file') {

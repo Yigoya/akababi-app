@@ -5,14 +5,20 @@ sealed class SinglePostState {}
 
 final class SinglePostInitial extends SinglePostState {}
 
-class PostLoading extends SinglePostState {
-  PostLoading();
+class SinglePostLoading extends SinglePostState {
+  SinglePostLoading();
 }
 
-class PostLoaded extends SinglePostState {
+class SinglePostLoaded extends SinglePostState {
   final Map<String, dynamic> post;
 
-  PostLoaded(this.post);
+  SinglePostLoaded(this.post);
+}
+
+class PostLikesLoaded extends SinglePostState {
+  final List<Map<String, dynamic>> likes;
+
+  PostLikesLoaded(this.likes);
 }
 
 class PostError extends SinglePostState {
