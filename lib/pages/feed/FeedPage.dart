@@ -15,6 +15,8 @@ import 'package:akababi/component/PostItem.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
@@ -37,27 +39,33 @@ class _FeedPageState extends State<FeedPage> {
     }
   }
 
-  Future<void> loadName() async {
-    final user = await authRepo.user;
-    if (user != null) {
-      setState(() {
-        userFullName = user.fullname;
-      });
-    }
-  }
-
   @override
   void initState() {
     super.initState();
+    scrollController.addListener(scrollListener);
     init();
   }
 
   void init() async {
-    await BlocProvider.of<PostCubit>(context).getFeed(context);
-    BlocProvider.of<AuthBloc>(context).add(GetLocationEvent(context: context));
-    BlocProvider.of<NotificationCubit>(context).getNotifications();
+    final pref = await SharedPreferences.getInstance();
+    bool location = pref.getBool('location') ?? true;
 
-    await loadName();
+    await BlocProvider.of<PostCubit>(context).getFeed(context);
+    BlocProvider.of<AuthBloc>(context)
+        .add(GetLocationEvent(context: context, value: location));
+    BlocProvider.of<NotificationCubit>(context).getNotifications();
+    setState(() {
+      _switchValue = location;
+    });
+  }
+
+  void scrollListener() {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 100) {
+      // Trigger your function when near the end
+      print('Near the end of the scroll');
+      BlocProvider.of<PostCubit>(context).getScrollFeed(context);
+    }
   }
 
   @override
@@ -105,7 +113,7 @@ class _FeedPageState extends State<FeedPage> {
                       top: 3,
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                             color: Colors.red, shape: BoxShape.circle),
                         child: Text(
                           numOfUnreadNotification.toString(),
@@ -130,67 +138,42 @@ class _FeedPageState extends State<FeedPage> {
           child: Column(
             children: [
               Container(
-                color: Colors.white,
+                color: Colors.grey[200],
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        SizedBox(
-                          width: 260,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
+                        const Flexible(
                             child: Text(
-                              "hi $userFullName",
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.kodchasan(
-                                textStyle: const TextStyle(
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color.fromARGB(255, 61, 14, 28)),
-                              ),
-                            ),
+                                "By toggling the switch control your locationvisibility in the app")),
+                        SizedBox(
+                          height: 35,
+                          width: 45,
+                          child: FittedBox(
+                            fit: BoxFit.fill,
+                            child: Switch(
+                                value: _switchValue,
+                                onChanged: (newValue) {
+                                  if (newValue) {
+                                    BlocProvider.of<AuthBloc>(context).add(
+                                        GetLocationEvent(
+                                            context: context, value: true));
+                                  } else {
+                                    BlocProvider.of<AuthBloc>(context).add(
+                                        GetLocationEvent(
+                                            context: context, value: false));
+                                  }
+                                  setState(() {
+                                    _switchValue = newValue;
+                                  });
+                                }),
                           ),
                         ),
-                        Row(
-                          children: [
-                            Text("location",
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    color: Color.fromARGB(255, 0, 0, 0)
-                                        .withOpacity(0.5))),
-                            SizedBox(
-                              height: 20,
-                              width: 30,
-                              child: FittedBox(
-                                fit: BoxFit.fill,
-                                child: Switch(
-                                    value: _switchValue,
-                                    onChanged: (newValue) {
-                                      if (newValue) {
-                                        BlocProvider.of<AuthBloc>(context).add(
-                                            GetLocationEvent(
-                                                context: context, off: false));
-                                      } else {
-                                        BlocProvider.of<AuthBloc>(context).add(
-                                            GetLocationEvent(
-                                                context: context, off: true));
-                                      }
-                                      setState(() {
-                                        _switchValue = newValue;
-                                      });
-                                    }),
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
-                    ),
-                    const SizedBox(
-                      height: 10,
                     ),
                   ],
                 ),
@@ -231,7 +214,7 @@ class _FeedPageState extends State<FeedPage> {
                             final randInt =
                                 Random().nextInt(((index / 2) + 1).toInt());
                             if (index == randInt &&
-                                state.recommendedPeople.length > 0) {
+                                state.recommendedPeople.isNotEmpty) {
                               return RecommendedPeoples(
                                 people: state.recommendedPeople,
                               );
@@ -241,7 +224,19 @@ class _FeedPageState extends State<FeedPage> {
                             );
                           },
                         ),
-                        ElevatedButton(onPressed: () {}, child: Text("Comment"))
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          child: Text(
+                            "Loading more posts...",
+                            style: GoogleFonts.kodchasan(
+                              textStyle: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ),
+                        )
                       ],
                     );
                   } else {
@@ -266,14 +261,26 @@ class RecommendedPeoples extends StatelessWidget {
     return Container(
       color: Colors.white,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            padding: EdgeInsets.symmetric(horizontal: 16),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Suggested people for you'),
-                TextButton(onPressed: () {}, child: const Text('See all')),
+                Text(
+                  'Suggested people for you',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () {
+                    pageController.jumpToTab(1);
+                  },
+                  child: const Text(
+                    'See all',
+                    style: TextStyle(fontSize: 16, color: Colors.blue),
+                  ),
+                )
               ],
             ),
           ),
@@ -315,18 +322,18 @@ class _RefreashFeedState extends State<RefreashFeed> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.check_circle_outline,
+          const Icon(Icons.check_circle_outline,
               color: Color.fromARGB(255, 228, 63, 113), size: 60),
           Text("You're all caught up",
               style: TextStyle(
                   fontSize: 25,
-                  color: Color.fromARGB(255, 0, 0, 0).withOpacity(1))),
+                  color: const Color.fromARGB(255, 0, 0, 0).withOpacity(1))),
           Text(
               "You have seen all new post from your area and friends from the past ${(feedIndex == -1 ? 1 : feedIndex + 1) * 7} days",
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 20,
-                  color: Color.fromARGB(255, 0, 0, 0).withOpacity(0.5))),
+                  color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.5))),
           GestureDetector(
             onTap: () {
               scrollToTop();
@@ -337,9 +344,9 @@ class _RefreashFeedState extends State<RefreashFeed> {
               margin: const EdgeInsets.symmetric(vertical: 20),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
-                  color: Color.fromARGB(255, 228, 63, 113),
+                  color: const Color.fromARGB(255, 228, 63, 113),
                   borderRadius: BorderRadius.circular(20)),
-              child: Text("Refresh",
+              child: const Text("Refresh",
                   style: TextStyle(
                       fontSize: 20,
                       color: Colors.white,

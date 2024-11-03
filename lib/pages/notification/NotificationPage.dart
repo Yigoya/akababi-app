@@ -5,7 +5,6 @@ import 'package:akababi/pages/post/video_view.dart';
 import 'package:akababi/pages/profile/PersonProfile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class NotificationPage extends StatefulWidget {
@@ -60,12 +59,11 @@ class _NotificationPageState extends State<NotificationPage> {
                     onTap: () {
                       if (notification["type"] == "LIKE") {
                         if (notification['media_type'] == 'image') {
-                          Navigator.of(context, rootNavigator: true).push(
-                              MaterialPageRoute(
+                          Navigator.of(context, rootNavigator: true)
+                              .push(MaterialPageRoute(
                                   builder: (context) => ImageViewingPage(
-                                      imageUrl: notification['media_url'],
-                                      postedBy: notification['sender_name'],
-                                      likes: notification['likes'])));
+                                        imageUrl: notification['media_url'],
+                                      )));
                         } else if (notification['media_type'] == 'video') {
                           Navigator.of(context, rootNavigator: true).push(
                               MaterialPageRoute(

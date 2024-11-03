@@ -8,7 +8,8 @@ class FollowButton extends StatefulWidget {
   final String friendshipStatus;
   final int id;
 
-  FollowButton({required this.friendshipStatus, required this.id});
+  const FollowButton(
+      {super.key, required this.friendshipStatus, required this.id});
 
   @override
   State<FollowButton> createState() => _FollowButtonState();
@@ -65,18 +66,20 @@ class _FollowButtonState extends State<FollowButton> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red, // Red color for the button
+              backgroundColor: Colors.red,
+
+              // Red color for the button
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8), // Rounded corners
               ),
             ),
             child: Text(
               status,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
               ),
             ),
           )
-        : SizedBox.shrink();
+        : const SizedBox.shrink();
   }
 }

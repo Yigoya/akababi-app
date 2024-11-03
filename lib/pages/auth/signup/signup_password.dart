@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SignUpPasswordPage extends StatefulWidget {
+  const SignUpPasswordPage({super.key});
+
   @override
   State<SignUpPasswordPage> createState() => _SignUpPasswordPageState();
 }
@@ -17,7 +19,7 @@ class _SignUpPasswordPageState extends State<SignUpPasswordPage> {
 
   bool active = false;
   void _onChanged(String value) {
-    if (passwordController.text.length > 9) {
+    if (passwordController.text.length >= 6) {
       setState(() {
         active = true;
       });
@@ -39,23 +41,23 @@ class _SignUpPasswordPageState extends State<SignUpPasswordPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "Create a password",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               'Choose a strong password to secure your account.',
               style: TextStyle(color: Colors.grey[600]),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             BlocBuilder<SignupCubit, SignupState>(
               builder: (context, state) {
                 if (state is SignupLoading) {
-                  return BeautifulLoader(isLoading: true);
+                  return const BeautifulLoader(isLoading: true);
                 } else if (state is SignupFailed) {
                   return BeautifulLoader(
                       isLoading: false, errorMessage: state.message);
@@ -63,20 +65,20 @@ class _SignUpPasswordPageState extends State<SignUpPasswordPage> {
                 return Container();
               },
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             CommonTextField(
               onChanged: _onChanged,
               labelText: 'username',
               controller: usernameController,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             CommonTextField(
               onChanged: _onChanged,
               labelText: 'Password',
               controller: passwordController,
               obscureText: true,
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             cb.CommonButton(
               active: active,
               buttonText: 'Next',
@@ -91,17 +93,17 @@ class _SignUpPasswordPageState extends State<SignUpPasswordPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SignUpTermsPage(),
+                    builder: (context) => const SignUpTermsPage(),
                   ),
                 );
               },
             ),
-            Spacer(),
+            const Spacer(),
             TextButton(
               onPressed: () {
                 // Handle already have an account action
               },
-              child: Text(
+              child: const Text(
                 'I already have an account',
                 style: TextStyle(color: Colors.red),
               ),

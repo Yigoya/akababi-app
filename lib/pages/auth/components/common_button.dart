@@ -5,8 +5,9 @@ class CommonButton extends StatelessWidget {
   final String buttonText;
   final VoidCallback onPressed;
 
-  CommonButton(
-      {required this.buttonText,
+  const CommonButton(
+      {super.key,
+      required this.buttonText,
       required this.onPressed,
       required this.active});
 
@@ -19,11 +20,11 @@ class CommonButton extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
-        padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
       ),
       child: Text(
         buttonText,
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.white,
           fontSize: 18,
         ),

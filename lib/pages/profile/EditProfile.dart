@@ -29,7 +29,6 @@ class _EditProfileState extends State<EditProfile> {
   final TextEditingController birthController = TextEditingController();
 
   final TextEditingController nameController = TextEditingController();
-  final TextEditingController usernameController = TextEditingController();
 
   final TextEditingController genderController = TextEditingController();
 
@@ -164,8 +163,6 @@ class _EditProfileState extends State<EditProfile> {
                             ErrorItem(error: state.error),
                             InputField(state.user.fullname, 'Full Name',
                                 nameController, 'fullname'),
-                            InputField(state.user.username, 'User Name',
-                                usernameController, 'username'),
                             InputField(state.user.bio, 'Edit your bio',
                                 bioController, 'bio'),
                             InputField(state.user.phonenumber, 'Phone Number',
@@ -215,7 +212,6 @@ class _EditProfileState extends State<EditProfile> {
                       final res = await BlocProvider.of<ProfileCubit>(context)
                           .editProfile(
                         fullname: nameController.text,
-                        username: usernameController.text,
                         bio: bioController.text,
                         phonenumber: phoneController.text,
                         gender: genderController.text.toLowerCase(),

@@ -1,11 +1,11 @@
-import 'package:akababi/component/follow_button.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:flutter/material.dart';
 
 class PostNearMe extends StatelessWidget {
   final Map<String, dynamic> post;
 
-  PostNearMe({
+  const PostNearMe({
+    super.key,
     required this.post,
   });
 
@@ -67,12 +67,12 @@ class PostNearMe extends StatelessWidget {
               // Name
               Text(
                 post['full_name'],
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
               // Follow Button
               Text(
                 post['distance'] != 0 ? '${post['distance']} km' : 'Right Here',
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
             ],
           ),

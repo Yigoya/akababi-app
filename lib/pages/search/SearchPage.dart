@@ -1,9 +1,8 @@
 import 'package:akababi/bloc/cubit/search_cubit.dart';
+import 'package:akababi/component/PostItem.dart';
 import 'package:akababi/pages/profile/PersonProfile.dart';
-import 'package:akababi/pages/profile/UserProfile2.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/skeleton/SearchItemSkeleton.dart';
-import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -55,7 +54,9 @@ class _SearchPageState extends State<SearchPage> {
             ),
             child: TextField(
               onChanged: (value) {
-                BlocProvider.of<SearchCubit>(context).search(value);
+                if (value.length > 2) {
+                  BlocProvider.of<SearchCubit>(context).search(value);
+                }
               },
               decoration: const InputDecoration(
                 hintText: 'Search...',
@@ -66,7 +67,6 @@ class _SearchPageState extends State<SearchPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const Text("Users", style: TextStyle(fontSize: 25)),
             BlocBuilder<SearchCubit, SearchState>(
               builder: (context, state) {
                 if (state is SearchLoading) {
@@ -130,10 +130,6 @@ class _SearchPageState extends State<SearchPage> {
               },
             ),
             const SizedBox(height: 20),
-            const Text(
-              "Posts",
-              style: TextStyle(fontSize: 25),
-            ),
             BlocBuilder<SearchCubit, SearchState>(
               builder: (context, state) {
                 if (state is SearchLoading) {
@@ -152,25 +148,15 @@ class _SearchPageState extends State<SearchPage> {
                   if (state.search.isEmpty) {
                     return const Center(child: Text('No results found'));
                   }
-                  return SizedBox(
-                    height:
-                        (state.search['post']!.length / 2).ceilToDouble() * 200,
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      itemCount: state.search['post']!.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 4,
-                        mainAxisSpacing: 4,
-                      ),
-                      itemBuilder: (context, index) {
-                        var post = state.search['post']![index];
-
-                        return SizedBox(
-                            height: 200, child: listItem(context, post));
-                      },
-                    ),
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: state.search['post']!.length,
+                    itemBuilder: (context, index) {
+                      return PostItem(
+                        post: state.search['post']![index],
+                      );
+                    },
                   );
                 } else {
                   return Container();

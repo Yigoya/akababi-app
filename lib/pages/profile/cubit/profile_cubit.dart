@@ -1,3 +1,4 @@
+import 'package:akababi/main.dart';
 import 'package:akababi/model/User.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/repositiory/UserRepo.dart';
@@ -33,8 +34,13 @@ class ProfileCubit extends Cubit<ProfileState> {
   Future<void> logOut(BuildContext context) async {
     final pref = await SharedPreferences.getInstance();
     pref.remove('imagePath');
+    pref.clear();
     emit(ProfileInitial());
     await authRepo.removeUser();
+    runApp(MyApp(
+      isExist: false,
+    ));
+
     await Navigator.pushNamedAndRemoveUntil(
         context, '/login', (route) => false);
   }
@@ -71,7 +77,6 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   Future<bool> editProfile({
     required String fullname,
-    required String username,
     required String bio,
     required String phonenumber,
     required String gender,
@@ -82,7 +87,7 @@ class ProfileCubit extends Cubit<ProfileState> {
       var lastName = fullname.split(' ')[1];
       var birth = birthday == '' ? null : birthday;
       var user = await userRepo.editProfile(
-          firstName, lastName, username, bio, phonenumber, gender, birth);
+          firstName, lastName, bio, phonenumber, gender, birth);
       await authRepo.setUser(user!);
       final state = super.state as ProfileLoaded;
       emit(ProfileLoaded(user, state.posts, state.friends, state.likedPosts,

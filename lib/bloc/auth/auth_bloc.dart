@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:akababi/repositiory/UserRepo.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -205,8 +207,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(CodeVarifyState(error: "confirm passoword error"));
       return;
     }
-    if (5 > _calculatePasswordStrength(event.password)) {
-      print(_calculatePasswordStrength(event.password));
+    if (event.password.length < 6) {
+      ;
       emit(CodeVarifyState(error: "passoword is Week"));
       return;
     }
@@ -272,29 +274,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _getLocation(
       GetLocationEvent event, Emitter<AuthState> emit) async {
     final pref = await SharedPreferences.getInstance();
-    print(event.off);
-    if (event.off != null) {
-      print(event.off!);
-      if (event.off!) {
-        pref.setBool('location', false);
-        final res = await authRepo.setLocation(null, null);
-        return;
-      } else {
-        pref.setBool('location', true);
-
-        final location = await getCurrentLocation(event.context);
-        final res =
-            await authRepo.setLocation(location!.latitude, location.longitude);
-      }
-    } else {
-      final isOn = pref.getBool('location');
-      if (isOn != null && !isOn) {
-        final res = await authRepo.setLocation(null, null);
-      } else {
-        final location = await getCurrentLocation(event.context);
-        final res =
-            await authRepo.setLocation(location!.latitude, location.longitude);
-      }
-    }
+    pref.setBool('location', event.value);
+    final location = await getCurrentLocation(event.context);
+    await authRepo.setLocation(
+        latitude: location!.latitude, longitude: location.longitude);
   }
 }

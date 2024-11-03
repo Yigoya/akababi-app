@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SignUpEmailPage extends StatefulWidget {
+  const SignUpEmailPage({super.key});
+
   @override
   State<SignUpEmailPage> createState() => _SignUpEmailPageState();
 }
@@ -36,23 +38,23 @@ class _SignUpEmailPageState extends State<SignUpEmailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "What's your email address?",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               'Enter the email address on which you can be contacted. No one will see this on your profile.',
               style: TextStyle(color: Colors.grey[600]),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             BlocBuilder<SignupCubit, SignupState>(
               builder: (context, state) {
                 if (state is SignupLoading) {
-                  return BeautifulLoader(isLoading: true);
+                  return const BeautifulLoader(isLoading: true);
                 } else if (state is SignupFailed) {
                   return BeautifulLoader(
                       isLoading: false, errorMessage: state.message);
@@ -60,13 +62,13 @@ class _SignUpEmailPageState extends State<SignUpEmailPage> {
                 return Container();
               },
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             CommonTextField(
               onChanged: _onChanged,
               labelText: 'Email address',
               controller: emailController,
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -83,7 +85,7 @@ class _SignUpEmailPageState extends State<SignUpEmailPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CodeVerificationPage(),
+                        builder: (context) => const CodeVerificationPage(),
                       ),
                     );
                   },
@@ -94,28 +96,29 @@ class _SignUpEmailPageState extends State<SignUpEmailPage> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => SignUpMobilePage()));
+                            builder: (context) => const SignUpMobilePage()));
                   },
                   style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.red),
+                    side: const BorderSide(color: Colors.red),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 15, horizontal: 20),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Sign up with Mobile number',
                     style: TextStyle(color: Colors.red, fontSize: 16),
                   ),
                 ),
               ],
             ),
-            Spacer(),
+            const Spacer(),
             TextButton(
               onPressed: () {
                 // Handle already have an account action
               },
-              child: Text(
+              child: const Text(
                 'I already have an account',
                 style: TextStyle(color: Colors.red),
               ),

@@ -249,7 +249,7 @@ class _HomePageState extends State<HomePage> {
     return [
       const FeedPage(),
       NearMePage(),
-      PostPage(),
+      const PostPage(),
       const ChatPage(),
       const ProfilePage()
     ];
@@ -264,12 +264,12 @@ class _HomePageState extends State<HomePage> {
     return [
       PersistentBottomNavBarItem(
         icon: const Icon(FeatherIcons.home),
-        activeColorPrimary: Colors.black,
+        activeColorPrimary: Colors.blue,
         inactiveColorPrimary: Colors.grey[800],
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(FeatherIcons.compass),
-        activeColorPrimary: Colors.black,
+        activeColorPrimary: Colors.blue,
         inactiveColorPrimary: Colors.grey[800],
       ),
       PersistentBottomNavBarItem(
@@ -279,17 +279,17 @@ class _HomePageState extends State<HomePage> {
         inactiveColorPrimary: Colors.grey[800],
         onPressed: (p0) {
           Navigator.of(context, rootNavigator: true)
-              .push(MaterialPageRoute(builder: (context) => PostPage()));
+              .push(MaterialPageRoute(builder: (context) => const PostPage()));
         },
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(FeatherIcons.messageCircle),
-        activeColorPrimary: Colors.black,
+        activeColorPrimary: Colors.blue,
         inactiveColorPrimary: Colors.grey[800],
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(FeatherIcons.user),
-        activeColorPrimary: Colors.black,
+        activeColorPrimary: Colors.blue,
         inactiveColorPrimary: Colors.grey[800],
       ),
     ];

@@ -2,6 +2,7 @@ import 'package:akababi/pages/profile/EditProfile.dart';
 import 'package:akababi/pages/profile/cubit/profile_cubit.dart';
 import 'package:akababi/pages/setting/DeactivatePage.dart';
 import 'package:akababi/pages/setting/DeletePage.dart';
+import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -114,6 +115,7 @@ class _SettingPageState extends State<SettingPage> {
                 style: TextStyle(color: Colors.white),
               ),
               onTap: () {
+                pageController.jumpToTab(0);
                 BlocProvider.of<ProfileCubit>(context).logOut(context);
               },
             ),

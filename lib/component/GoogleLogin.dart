@@ -15,7 +15,7 @@ class GoogleLogin extends StatelessWidget {
         width: 300,
         padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 30),
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(35),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: const Color.fromARGB(255, 243, 137, 51))),
         child: Row(
           children: [

@@ -25,30 +25,10 @@ class PictureCubit extends Cubit<PictureState> {
     print(join(AuthRepo.SERVER, user!.profile_picture!));
     if (imagePath != null) {
       emit(PictureLoaded(imagePath: imagePath));
+    } else if (user.profile_picture != null) {
+      emit(PictureLoadedInternet(imageUrl: user.profile_picture!));
     } else {
-      emit(PictureEmpty(imagePath: user.profile_picture!));
-      // print(user!.profile_picture);
-      // try {
-      //   var urlPath = join(AuthRepo.SERVER, user!.profile_picture!);
-      //   print(urlPath);
-      //   var res = await dio.get(
-      //     urlPath,
-      //     options: Options(
-      //         responseType: ResponseType.bytes,
-      //         followRedirects: false,
-      //         validateStatus: (status) {
-      //           return status! < 500;
-      //         }),
-      //   );
-      //   var file = File(savePath);
-      //   var raf = file.openSync(mode: FileMode.write);
-      //   raf.writeFromSync(res.data);
-      //   await raf.close();
-      //   pref.setString('imagePath', savePath);
-      // } catch (err) {
-      //   print('Error $err');
-
-      // }
+      emit(PictureEmpty());
     }
   }
 

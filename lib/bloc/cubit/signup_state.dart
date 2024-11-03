@@ -14,7 +14,7 @@ final class SignupLoading extends SignupState {}
 final class SignupData extends SignupState {
   final Signup signup;
 
-  SignupData(this.signup);
+  const SignupData(this.signup);
 
   @override
   List<Object> get props => [signup];
@@ -23,7 +23,7 @@ final class SignupData extends SignupState {
 final class SignupSuccess extends SignupState {
   final User user;
 
-  SignupSuccess(this.user);
+  const SignupSuccess(this.user);
 
   @override
   List<Object> get props => [user];
@@ -32,7 +32,7 @@ final class SignupSuccess extends SignupState {
 final class SignupFailed extends SignupState {
   final String message;
 
-  SignupFailed(this.message);
+  const SignupFailed(this.message);
 
   @override
   List<Object> get props => [message];

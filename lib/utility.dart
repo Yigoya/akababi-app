@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:akababi/bloc/cubit/post_cubit.dart';
 import 'package:akababi/pages/post/SinglePostPage.dart';
 import 'package:akababi/pages/profile/cubit/profile_cubit.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
@@ -240,18 +241,18 @@ Future<void> _showLocationServiceDialog(BuildContext context) async {
         false, // Prevent dismissing the dialog by tapping outside
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('Location Services Disabled'),
-        content: Text(
+        title: const Text('Location Services Disabled'),
+        content: const Text(
             'Please enable location services in your device settings. After enabling, tap "Settings" to continue. or "Cancel" to dismiss see the result in 30 seconds'),
         actions: <Widget>[
           TextButton(
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           TextButton(
-            child: Text('Settings'),
+            child: const Text('Settings'),
             onPressed: () {
               Navigator.of(context).pop();
               Geolocator.openLocationSettings();
@@ -303,7 +304,7 @@ Future<bool> _waitForLocationServiceEnable({required Duration timeout}) async {
       return true; // User enabled location services
     }
     await Future.delayed(
-        Duration(seconds: 1)); // Wait for 1 second before checking again
+        const Duration(seconds: 1)); // Wait for 1 second before checking again
   }
   return false; // Timeout reached, user did not enable location services
 }
@@ -335,12 +336,12 @@ Future<Position?> getCurrentLocation(BuildContext context) async {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         await _showLocationServiceDialog(context);
-        bool userEnabledService =
-            await _waitForLocationServiceEnable(timeout: Duration(seconds: 30));
+        bool userEnabledService = await _waitForLocationServiceEnable(
+            timeout: const Duration(seconds: 30));
 
         if (!userEnabledService) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
                 content: Text(
                     'Location services are still disabled. Please enable them to get accurate result.')),
           );
@@ -437,7 +438,7 @@ final ScrollController scrollController = ScrollController();
 void scrollToTop() {
   scrollController.animateTo(
     0.0,
-    duration: Duration(milliseconds: 300),
+    duration: const Duration(milliseconds: 300),
     curve: Curves.easeInOut,
   );
 }

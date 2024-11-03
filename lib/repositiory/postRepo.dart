@@ -20,8 +20,9 @@ class PostRepo {
   Future<Map<String, List<Map<String, dynamic>>>> searchUser(
       String query) async {
     try {
-      final response = await _dio
-          .get('$server/search/user', queryParameters: {'query': query});
+      User? user = await AuthRepo().user;
+      final response = await _dio.get('$server/search/user/${user!.id}',
+          queryParameters: {'query': query});
       print(response.data);
       if (response.statusCode! < 400) {
         final user = response.data['user'] as List<dynamic>;
@@ -54,13 +55,14 @@ class PostRepo {
       {required int id,
       required double latitude,
       required double longitude,
+      String? lastPostCreatedAt,
       bool? refreach}) async {
     int index = refreach != true ? 0 : getFeedIndex();
-    print({
-      'id': id,
-      'latitude': latitude,
-      'longitude': longitude,
-    });
+    // print({
+    //   'id': id,
+    //   'latitude': latitude,
+    //   'longitude': longitude,
+    // });
     try {
       final response = await _dio.get('$server/post/$id', queryParameters: {
         'latitude': latitude,
@@ -84,6 +86,36 @@ class PostRepo {
       }).toList();
 
       return {"posts": posts, "recommendedPeople": peoples};
+    } catch (e) {
+      print(e);
+      throw Exception('Failed to connect to the backend');
+    }
+  }
+
+  Future<Map<String, dynamic>> getScrollPost({
+    required int id,
+    required double latitude,
+    required double longitude,
+    required String lastPostCreatedAt,
+  }) async {
+    try {
+      final response = await _dio.get('$server/post/$id', queryParameters: {
+        'latitude': latitude,
+        'longitude': longitude,
+        'lastPostCreatedAt': lastPostCreatedAt,
+      });
+      logger.d({
+        'latitude': latitude,
+        'longitude': longitude,
+        'lastPostCreatedAt': lastPostCreatedAt,
+      });
+
+      final postData = response.data["posts"] as List<dynamic>;
+      final posts = postData.map((json) {
+        return json as Map<String, dynamic>;
+      }).toList();
+
+      return {"posts": posts};
     } catch (e) {
       print(e);
       throw Exception('Failed to connect to the backend');
@@ -401,11 +433,11 @@ class PostRepo {
         'content': content,
       };
       if (imagePath != null) {
-        data['imagePath'] = MultipartFile.fromFile(imagePath,
-            contentType: MediaType('image', 'jpeg'));
+        data['image'] = await MultipartFile.fromFile(imagePath,
+            contentType: MediaType('image', 'jpg'));
       }
       if (audioPath != null) {
-        data['audioPath'] = MultipartFile.fromFile(audioPath,
+        data['audio'] = await MultipartFile.fromFile(audioPath,
             contentType: MediaType('audio', 'mpeg'));
       }
 
@@ -439,11 +471,11 @@ class PostRepo {
         'content': content,
       };
       if (imagePath != null) {
-        data['imagePath'] = MultipartFile.fromFile(imagePath,
-            contentType: MediaType('image', 'jpeg'));
+        data['image'] = await MultipartFile.fromFile(imagePath,
+            contentType: MediaType('image', 'jpg'));
       }
       if (audioPath != null) {
-        data['audioPath'] = MultipartFile.fromFile(audioPath,
+        data['audio'] = await MultipartFile.fromFile(audioPath,
             contentType: MediaType('audio', 'mpeg'));
       }
 
@@ -465,7 +497,7 @@ class PostRepo {
     print(user!.id);
     try {
       final response =
-          await _dio.get('$server/post/getPostComments/$id/${user!.id}');
+          await _dio.get('$server/post/getPostComments/$id/${user.id}');
 
       final data = response.data as List<dynamic>;
       final comments =

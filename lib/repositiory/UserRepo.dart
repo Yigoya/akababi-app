@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:akababi/model/User.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
+import 'package:akababi/utility.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
@@ -63,10 +64,14 @@ class UserRepo {
 
   Future<Map<String, dynamic>> getProfile(int id) async {
     try {
+      logger.d('Getting profile for user with ID: $id');
       Response res = await dio.get('${AuthRepo.SERVER}/user/getProfile/$id');
-
       return res.data;
     } catch (e) {
+      if (e is DioException) {
+        String error = handleDioError(e);
+        logger.d(error);
+      }
       print(e);
       return {};
     }
@@ -158,14 +163,13 @@ class UserRepo {
   ///
   /// Returns a [Future] that completes with a [User] object if the profile is successfully edited,
   /// or `null` if an error occurs.
-  Future<User?> editProfile(String firstName, String lastName, String username,
-      String bio, String phonenumber, String gender, String? birthday) async {
+  Future<User?> editProfile(String firstName, String lastName, String bio,
+      String phonenumber, String gender, String? birthday) async {
     final user = await authRepo.user;
     Map<String, dynamic> data = {
       'id': user!.id,
       'first_name': firstName,
       'last_name': lastName,
-      'username': username,
       'bio': bio,
       'phonenumber': phonenumber,
       'gender': gender,
@@ -176,6 +180,7 @@ class UserRepo {
     if (res.statusCode == 200) {
       return User.fromMap(res.data['user']);
     }
+    return null;
   }
 
   /// Retrieves an image from the device's gallery.

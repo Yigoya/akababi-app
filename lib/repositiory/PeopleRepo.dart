@@ -70,7 +70,7 @@ class PeopleRepo {
   Future<String> friendRequestRespond(int id, String response) async {
     try {
       final user = await authRepo.user;
-      final data = {'user_id': user!.id, 'friend_id': id, 'respond': response};
+      final data = {'user_id': id, 'friend_id': user!.id, 'respond': response};
       final res = await dio.post('${AuthRepo.SERVER}/user/friendRequestRespond',
           data: data);
       logger.d(res.data);

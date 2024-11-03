@@ -1,5 +1,4 @@
 import 'package:akababi/pages/profile/PersonProfile.dart';
-import 'package:akababi/pages/profile/UserProfile2.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';

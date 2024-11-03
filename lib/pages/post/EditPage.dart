@@ -39,24 +39,21 @@ class _EditPostState extends State<EditPost> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.isRepost == true ? 'Edit Repost' : 'Edit Post'),
+      ),
       body: Container(
-        padding: EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
+        padding: const EdgeInsets.all(16.0),
+        decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text(
-              'Edit Post',
-              style: TextStyle(
-                fontSize: 24.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
                   radius: 20,
@@ -71,52 +68,64 @@ class _EditPostState extends State<EditPost> {
                   width: 10,
                 ),
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text(user?.fullname ?? ''),
+                    Text(user?.fullname ?? '',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 22,
+                          color: Colors.grey[800],
+                        )),
                     Row(
                       children: [
-                        Container(
-                          height: 30,
-                          padding: const EdgeInsets.only(left: 15),
-                          decoration: BoxDecoration(
-                              color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(8)),
-                          child: DropdownButton<String>(
-                            dropdownColor: Colors.amber,
-                            iconSize: 35,
-                            borderRadius: BorderRadius.all(Radius.circular(16)),
-                            value: dropdownValue,
-                            underline: const SizedBox(),
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                dropdownValue = newValue!;
-                              });
-                            },
-                            items: <String>['public', 'private', 'friends_only']
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(
-                                  value,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 18),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
+                        widget.isRepost != true
+                            ? Container(
+                                height: 30,
+                                padding: const EdgeInsets.only(left: 15),
+                                decoration: BoxDecoration(
+                                    color: Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: DropdownButton<String>(
+                                  dropdownColor: Colors.amber,
+                                  iconSize: 35,
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(16)),
+                                  value: dropdownValue,
+                                  underline: const SizedBox(),
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      dropdownValue = newValue!;
+                                    });
+                                  },
+                                  items: <String>[
+                                    'public',
+                                    'private',
+                                    'friends_only'
+                                  ].map<DropdownMenuItem<String>>(
+                                      (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(
+                                        value,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 18),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ))
+                            : const SizedBox.shrink(),
                       ],
                     ),
                   ],
                 ),
               ],
             ),
+            const SizedBox(height: 10),
             TextField(
               autofocus: true,
               controller: controller,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Enter your post',
                 border: OutlineInputBorder(),
               ),

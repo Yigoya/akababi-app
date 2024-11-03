@@ -10,13 +10,13 @@ class AuthRepo {
   static bool isServer = false;
   User? auser;
   String? atoken;
-  static String SERVER = 'http://192.168.231.17:3000';
+  static String SERVER = 'http://192.168.192.17:3000';
   // static String SERVER = 'https://api1.myakababi.com';
 
   /// Retrieves the user from SharedPreferences.
   /// Returns the user object if it exists, otherwise returns null.
   Future<User?> get user async {
-    if (auser != null) return auser;
+    // if (auser != null) return auser;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final value = prefs.getString('user') ?? '';
     if (value == '') return null;
@@ -62,6 +62,7 @@ class AuthRepo {
   Future<void> removeUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('user');
+    auser = null;
   }
 
   /// Sets the authentication token in the shared preferences.
@@ -244,23 +245,15 @@ class AuthRepo {
   /// The [email] parameter is the email address to verify.
   /// The [code] parameter is the code to be verified.
   Future<Map<String, dynamic>> codeVarify(String email, String code) async {
-    try {
-      var data = {
-        'email': email,
-        'otp': code,
-      };
-      final res = await dio.post("$SERVER/user/VerifyCode", data: data);
+    var data = {
+      'email': email,
+      'otp': code,
+    };
+    final res = await dio.post("$SERVER/user/VerifyCode", data: data);
 
-      print(res);
+    print(res);
 
-      return res.data;
-    } catch (e) {
-      print(e);
-      return {
-        'status': 'error',
-        'message': 'Invalid code entered, \ninsert correct code or resend code',
-      };
-    }
+    return res.data;
   }
 
   /// Signs up a user with the provided information.
@@ -314,7 +307,8 @@ class AuthRepo {
   /// Returns a [Future] that completes with a [bool] value indicating whether the location was set successfully.
   /// If the location is set successfully, the method returns `true`. Otherwise, it returns `false`.
   /// Throws an exception if an error occurs during the process.
-  Future<bool> setLocation(double? latitude, double? longitude) async {
+  Future<bool> setLocation(
+      {required double latitude, required double longitude}) async {
     try {
       final user = await this.user;
       var data = {"id": user!.id, "latitude": latitude, "longitude": longitude};

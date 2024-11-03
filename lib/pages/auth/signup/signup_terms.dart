@@ -26,7 +26,7 @@ class SignUpTermsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
+            const Text(
               "Agree to Akababi’s terms and policies",
               style: TextStyle(
                 fontSize: 22,
@@ -34,65 +34,65 @@ class SignUpTermsPage extends StatelessWidget {
               ),
               textAlign: TextAlign.start,
             ),
-            SizedBox(height: 20),
-            Text(
+            const SizedBox(height: 20),
+            const Text(
               "People who use our service may have uploaded your contact information to Akababi.",
               style: TextStyle(fontSize: 16),
               textAlign: TextAlign.start,
             ),
             InkWell(
               onTap: () => _launchURL("https://www.facebook.com/help/"),
-              child: Text(
+              child: const Text(
                 "Learn more",
                 style: TextStyle(color: Colors.blue, fontSize: 16),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             RichText(
               text: TextSpan(
-                style: TextStyle(color: Colors.black, fontSize: 16),
+                style: const TextStyle(color: Colors.black, fontSize: 16),
                 children: [
-                  TextSpan(
+                  const TextSpan(
                       text:
                           "By tapping I agree, you agree to create an account and to Akababi's "),
                   TextSpan(
                     text: "terms",
-                    style: TextStyle(color: Colors.blue),
+                    style: const TextStyle(color: Colors.blue),
                     recognizer: TapGestureRecognizer()
                       ..onTap =
                           () => _launchURL("https://www.facebook.com/terms"),
                   ),
-                  TextSpan(text: ", "),
+                  const TextSpan(text: ", "),
                   TextSpan(
                     text: "Privacy Policy",
-                    style: TextStyle(color: Colors.blue),
+                    style: const TextStyle(color: Colors.blue),
                     recognizer: TapGestureRecognizer()
                       ..onTap =
                           () => _launchURL("https://www.facebook.com/policy"),
                   ),
-                  TextSpan(text: " and "),
+                  const TextSpan(text: " and "),
                   TextSpan(
                     text: "Cookies Policy",
-                    style: TextStyle(color: Colors.blue),
+                    style: const TextStyle(color: Colors.blue),
                     recognizer: TapGestureRecognizer()
                       ..onTap =
                           () => _launchURL("https://www.facebook.com/cookies"),
                   ),
-                  TextSpan(text: "."),
+                  const TextSpan(text: "."),
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             RichText(
               text: TextSpan(
-                style: TextStyle(color: Colors.black, fontSize: 16),
+                style: const TextStyle(color: Colors.black, fontSize: 16),
                 children: [
-                  TextSpan(
+                  const TextSpan(
                       text:
                           "The Privacy Policy describes the ways we can use the information we collect when you create an account. For example, we use this information to provide, personalise and improve our products, including ads."),
                   TextSpan(
                     text: " Privacy Policy",
-                    style: TextStyle(color: Colors.blue),
+                    style: const TextStyle(color: Colors.blue),
                     recognizer: TapGestureRecognizer()
                       ..onTap =
                           () => _launchURL("https://www.facebook.com/policy"),
@@ -100,7 +100,7 @@ class SignUpTermsPage extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             CommonButton(
               buttonText: "I Agree",
               onPressed: () {
@@ -108,25 +108,10 @@ class SignUpTermsPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ProfilePicturePage(),
+                    builder: (context) => const ProfilePicturePage(),
                   ),
                 );
               },
-            ),
-            SizedBox(height: 20),
-            Center(
-              child: InkWell(
-                onTap: () {
-                  // Handle "I already have an account" action
-                },
-                child: Text(
-                  "I already have an account",
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
             ),
           ],
         ),
@@ -139,7 +124,8 @@ class CommonButton extends StatelessWidget {
   final String buttonText;
   final VoidCallback onPressed;
 
-  CommonButton({required this.buttonText, required this.onPressed});
+  const CommonButton(
+      {super.key, required this.buttonText, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -150,11 +136,11 @@ class CommonButton extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
-        padding: EdgeInsets.symmetric(vertical: 15),
+        padding: const EdgeInsets.symmetric(vertical: 15),
       ),
       child: Text(
         buttonText,
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.white,
           fontSize: 18,
         ),

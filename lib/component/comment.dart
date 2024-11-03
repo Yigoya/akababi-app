@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 
 class PostHeader extends StatelessWidget {
+  const PostHeader({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
         children: [
-          CircleAvatar(
+          const CircleAvatar(
             backgroundImage:
                 NetworkImage('https://example.com/user-profile.jpg'),
           ),
-          SizedBox(width: 10),
-          Column(
+          const SizedBox(width: 10),
+          const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -22,10 +24,10 @@ class PostHeader extends StatelessWidget {
               Text('Today is a great day look the sun shine'),
             ],
           ),
-          Spacer(),
+          const Spacer(),
           ElevatedButton(
             onPressed: () {},
-            child: Text('Follow'),
+            child: const Text('Follow'),
           ),
         ],
       ),
@@ -34,6 +36,8 @@ class PostHeader extends StatelessWidget {
 }
 
 class CommentInput extends StatelessWidget {
+  const CommentInput({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -51,7 +55,7 @@ class CommentInput extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.send),
+            icon: const Icon(Icons.send),
             onPressed: () {
               // Handle send comment
             },

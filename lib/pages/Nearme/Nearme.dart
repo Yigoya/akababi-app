@@ -1,6 +1,3 @@
-import 'package:akababi/bloc/cubit/post_cubit.dart';
-import 'package:akababi/component/PostItem.dart';
-import 'package:akababi/component/peopleItem.dart';
 import 'package:akababi/bloc/cubit/people_cubit.dart';
 import 'package:akababi/component/person_nearme.dart';
 import 'package:akababi/component/post_nearme.dart';

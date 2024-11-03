@@ -8,21 +8,34 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:logger/logger.dart';
 
-class PersonPage extends StatelessWidget {
+class PersonPage extends StatefulWidget {
   final int id;
 
   const PersonPage({super.key, required this.id});
 
   @override
+  State<PersonPage> createState() => _PersonPageState();
+}
+
+class _PersonPageState extends State<PersonPage> {
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    BlocProvider.of<PersonCubit>(context).getPepoleById(id);
+    BlocProvider.of<PersonCubit>(context).getPepoleById(widget.id);
     return Scaffold(
       body: SingleChildScrollView(
         child: BlocBuilder<PersonCubit, PersonState>(
           builder: (context, state) {
             if (state is PersonLoading) {
-              return const Center(
-                child: CircularProgressIndicator(),
+              return const SizedBox(
+                height: 600,
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
               );
             } else if (state is PersonLoaded) {
               final userProfile = state.person;
@@ -39,9 +52,17 @@ class PersonPage extends StatelessWidget {
                         width: double.infinity,
                         height: 400,
                         errorBuilder: (context, error, stackTrace) {
-                          return Image.network(
-                            'https://via.placeholder.com/400',
+                          return Container(
+                            width: double.infinity,
                             height: 400,
+                            color: Colors.grey,
+                            child: Center(
+                              child: Text(
+                                "no profile image",
+                                style: TextStyle(
+                                    color: Colors.grey[800], fontSize: 24),
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -70,7 +91,7 @@ class PersonPage extends StatelessWidget {
                           children: [
                             Text(
                               '${userProfile["full_name"]}',
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white),
@@ -88,7 +109,7 @@ class PersonPage extends StatelessWidget {
                               bottom: 10,
                               right: 10,
                               child: Container(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: Colors.black54,
@@ -98,7 +119,7 @@ class PersonPage extends StatelessWidget {
                                   userProfile['distance'] == 0
                                       ? 'Right Here'
                                       : '${userProfile["distance"]} km',
-                                  style: TextStyle(color: Colors.white),
+                                  style: const TextStyle(color: Colors.white),
                                 ),
                               ),
                             )
@@ -106,20 +127,20 @@ class PersonPage extends StatelessWidget {
                     ],
                   ),
                   Padding(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                             '${userProfile["followers"]} followers • ${userProfile["following"]} following',
-                            style: TextStyle(fontSize: 16)),
+                            style: const TextStyle(fontSize: 16)),
                         userProfile["bio"] != null
-                            ? SizedBox(height: 10)
-                            : SizedBox.shrink(),
+                            ? const SizedBox(height: 10)
+                            : const SizedBox.shrink(),
                         Text(userProfile["bio"] ?? ''),
                         userProfile["location_name"] != null
-                            ? SizedBox(height: 10)
-                            : SizedBox.shrink(),
+                            ? const SizedBox(height: 10)
+                            : const SizedBox.shrink(),
                         Text(userProfile['location_name'] ?? ''),
                         Row(
                           children: [
@@ -128,7 +149,7 @@ class PersonPage extends StatelessWidget {
                                 friendshipStatus:
                                     userProfile["friendshipStatus"]),
                             IconButton(
-                              icon: Icon(FeatherIcons.link2),
+                              icon: const Icon(FeatherIcons.link2),
                               onPressed: () {},
                             )
                           ],
@@ -136,20 +157,22 @@ class PersonPage extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Divider(),
+                  const Divider(),
                   // Suggested People Section
                   userProfile["recommendedPeople"].length != 0
                       ? Column(
                           children: [
                             Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 10),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Suggested people for you'),
+                                  const Text('Suggested people for you'),
                                   TextButton(
-                                      onPressed: () {}, child: Text('See all')),
+                                      onPressed: () {},
+                                      child: const Text('See all')),
                                 ],
                               ),
                             ),
@@ -166,15 +189,15 @@ class PersonPage extends StatelessWidget {
                                 },
                               ),
                             ),
-                            Divider(),
+                            const Divider(),
                           ],
                         )
-                      : SizedBox.shrink(),
+                      : const SizedBox.shrink(),
 
                   // Posts Section
                   ListView.builder(
                     shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
+                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: userProfile["posts"].length,
                     itemBuilder: (context, index) {
                       final post = userProfile["posts"][index];

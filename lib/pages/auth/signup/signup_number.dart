@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SignUpMobilePage extends StatefulWidget {
+  const SignUpMobilePage({super.key});
+
   @override
   State<SignUpMobilePage> createState() => _SignUpMobilePageState();
 }
@@ -33,14 +35,14 @@ class _SignUpMobilePageState extends State<SignUpMobilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "What's your mobile number?",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               'Enter the mobile number where you can be contacted. This will not be visible on your profile.',
               style: TextStyle(color: Colors.grey[600]),
@@ -49,13 +51,13 @@ class _SignUpMobilePageState extends State<SignUpMobilePage> {
               'You can always change who can see this later.',
               style: TextStyle(color: Colors.grey[600]),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             CommonTextField(
               onChanged: _onChanged,
               labelText: 'Mobile number',
               controller: mobileController,
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -72,34 +74,35 @@ class _SignUpMobilePageState extends State<SignUpMobilePage> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => SignUpEmailPage()));
+                            builder: (context) => const SignUpEmailPage()));
                   },
                   style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.red),
+                    side: const BorderSide(color: Colors.red),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 15, horizontal: 20),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Sign up with Email',
                     style: TextStyle(color: Colors.red, fontSize: 16),
                   ),
                 ),
               ],
             ),
-            Spacer(),
+            const Spacer(),
             TextButton(
               onPressed: () {
                 // Handle already have an account action
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SignUpEmailPage(),
+                    builder: (context) => const SignUpEmailPage(),
                   ),
                 );
               },
-              child: Text(
+              child: const Text(
                 'I already have an account',
                 style: TextStyle(color: Colors.red),
               ),

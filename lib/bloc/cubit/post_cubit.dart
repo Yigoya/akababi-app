@@ -25,9 +25,31 @@ class PostCubit extends Cubit<PostState> {
         longitude: location!.longitude,
         latitude: location.latitude,
         refreach: refreach);
-    if (post == null) return;
     emit(PostLoaded(
         posts: post["posts"], recommendedPeople: post["recommendedPeople"]));
+  }
+
+  Future<void> getScrollFeed(
+    BuildContext context,
+  ) async {
+    final user = await authRepo.user;
+    if (user == null) {
+      Navigator.of(context, rootNavigator: true).pushNamed('/login');
+      return;
+    }
+    final state = this.state as PostLoaded;
+    final finalPost = state.posts.last;
+    final location = await getCurrentLocation(context);
+    logger.d(finalPost);
+    final post = await PostRepo().getScrollPost(
+        id: user.id,
+        longitude: location!.longitude,
+        latitude: location.latitude,
+        lastPostCreatedAt: finalPost['created_at']);
+    // logger.d(post);
+    emit(PostLoaded(
+        posts: [...state.posts, ...post['posts']],
+        recommendedPeople: state.recommendedPeople));
   }
 
   Future<void> getNewPost() async {

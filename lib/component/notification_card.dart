@@ -26,7 +26,7 @@ class NotificationCard extends StatelessWidget {
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
             blurRadius: 5,
-            offset: Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -36,8 +36,8 @@ class NotificationCard extends StatelessWidget {
           CircleAvatar(
             radius: 25,
             backgroundImage: profilePicture != null
-                ? NetworkImage('${AuthRepo.SERVER}/${profilePicture}')
-                : AssetImage('assets/image/defaultprofile.png')
+                ? NetworkImage('${AuthRepo.SERVER}/$profilePicture')
+                : const AssetImage('assets/image/defaultprofile.png')
                     as ImageProvider,
             backgroundColor: Colors.grey.shade200,
           ),
@@ -52,14 +52,14 @@ class NotificationCard extends StatelessWidget {
                     children: [
                       TextSpan(
                         text: fullName,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
                         ),
                       ),
                       TextSpan(
                         text: ' $message',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.black54,
                         ),
                       ),
@@ -71,7 +71,7 @@ class NotificationCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   timeAgo,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.grey,
                     fontSize: 12,
                   ),
@@ -84,7 +84,7 @@ class NotificationCard extends StatelessWidget {
             Container(
               width: 10,
               height: 10,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.blueAccent,
                 shape: BoxShape.circle,
               ),

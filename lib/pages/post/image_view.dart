@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ImageViewingPage extends StatefulWidget {
   final String imageUrl;
-  final String postedBy;
-  final int likes;
 
-  ImageViewingPage({
+  const ImageViewingPage({
+    super.key,
     required this.imageUrl,
-    required this.postedBy,
-    required this.likes,
   });
 
   @override
@@ -29,7 +25,6 @@ class _ImageViewingPageState extends State<ImageViewingPage>
   @override
   void initState() {
     super.initState();
-    likeCount = widget.likes;
 
     // Initialize the animation controller for the heart icon
     _controller = AnimationController(
@@ -55,25 +50,6 @@ class _ImageViewingPageState extends State<ImageViewingPage>
   }
 
   // Single tap to show the number of likes
-  void _onSingleTap() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Likes"),
-          content: Text("This post has $likeCount likes."),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Close"),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   // Long press to download the image
   Future<void> _onLongPressDownload() async {
@@ -94,27 +70,9 @@ class _ImageViewingPageState extends State<ImageViewingPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Text(
-          widget.postedBy,
-          style: const TextStyle(color: Colors.white),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {
-              // Add more actions if needed
-            },
-          ),
-        ],
-      ),
       body: Stack(
         children: [
           GestureDetector(
-            onDoubleTap: _onDoubleTapLike,
-            onTap: _onSingleTap,
-            onLongPress: _onLongPressDownload,
             child: Center(
               child: PhotoView(
                 imageProvider: NetworkImage(widget.imageUrl),
@@ -146,27 +104,6 @@ class _ImageViewingPageState extends State<ImageViewingPage>
             ),
           ),
           // Post details (Posted by and likes)
-          Positioned(
-            bottom: 20,
-            left: 20,
-            child: Row(
-              children: [
-                const Icon(Icons.person, color: Colors.white),
-                const SizedBox(width: 5),
-                Text(
-                  'Posted by ${widget.postedBy}',
-                  style: const TextStyle(color: Colors.white),
-                ),
-                const SizedBox(width: 20),
-                const Icon(Icons.favorite, color: Colors.white),
-                const SizedBox(width: 5),
-                Text(
-                  '$likeCount likes',
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

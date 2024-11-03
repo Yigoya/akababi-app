@@ -5,7 +5,8 @@ class BeautifulLoader extends StatelessWidget {
   final String? errorMessage;
   final Widget child;
 
-  BeautifulLoader({
+  const BeautifulLoader({
+    super.key,
     required this.isLoading,
     this.errorMessage,
     this.child = const SizedBox.shrink(),
@@ -14,7 +15,7 @@ class BeautifulLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Center(
+      return const Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(
               Colors.deepPurple), // Custom color for loader
@@ -22,26 +23,22 @@ class BeautifulLoader extends StatelessWidget {
         ),
       );
     } else if (errorMessage != null) {
-      return Center(
+      return Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.red[100],
+          borderRadius: BorderRadius.circular(10),
+        ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+          children: [
             Icon(
-              Icons.error_outline,
-              color: Colors.redAccent,
-              size: 32, // Larger icon for better visibility
+              Icons.error,
+              color: Colors.red,
             ),
-            SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                softWrap: true,
-                errorMessage!,
-                style: TextStyle(
-                  color: Colors.redAccent,
-                  fontSize: 18, // Larger font size for readability
-                ),
-                textAlign: TextAlign.start,
-              ),
+            const SizedBox(width: 10),
+            Text(
+              errorMessage!,
+              style: const TextStyle(color: Colors.red),
             ),
           ],
         ),

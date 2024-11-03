@@ -1,4 +1,5 @@
 import 'package:akababi/component/follow_button.dart';
+import 'package:akababi/component/post_follow_button.dart';
 import 'package:akababi/pages/profile/PersonProfile.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +7,7 @@ import 'package:flutter/material.dart';
 class ProfileWithFollow extends StatelessWidget {
   final Map<String, dynamic> person;
 
-  ProfileWithFollow({required this.person});
+  const ProfileWithFollow({super.key, required this.person});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +19,7 @@ class ProfileWithFollow extends StatelessWidget {
                 builder: (context) => PersonPage(id: person['id'])));
       },
       child: Container(
-        margin: EdgeInsets.only(left: 16),
+        margin: const EdgeInsets.only(left: 16),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12), color: Colors.grey[300]),
         width: 250,
@@ -46,12 +47,16 @@ class ProfileWithFollow extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               person['full_name'],
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+            ),
+            Text(
+              '@${person['username']}',
+              style: TextStyle(fontSize: 18, color: Colors.grey[800]),
             ),
             const SizedBox(height: 4),
+            PostFollowButton(
+                friendshipStatus: person['friendshipStatus'], id: person['id'])
             // Follow Button
-            FollowButton(
-                id: person['id'], friendshipStatus: person['friendshipStatus']),
           ],
         ),
       ),

@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_compress/video_compress.dart';
 import 'package:pro_image_editor/pro_image_editor.dart';
 import 'package:akababi/bloc/auth/auth_state.dart';
@@ -20,7 +22,7 @@ import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 
 class PostPage extends StatefulWidget {
-  PostPage({Key? key});
+  const PostPage({super.key});
 
   @override
   State<PostPage> createState() => _PostPageState();
@@ -30,32 +32,32 @@ class _PostPageState extends State<PostPage> {
   String dropdownValue = 'public';
   User? user;
   bool _switchValue = true;
-
+  late ChewieController _chewieController;
+  late VideoPlayerController _videoPlayerController;
   final mediaPicker = MediaPicker();
   final mediaProcessing = MediaProcessing();
   late Subscription _subscription;
-  late VideoPlayerController _videoPlayerController;
-  late ChewieController _chewieController;
   final TextEditingController _textEditingController = TextEditingController();
   bool isLoading = false;
   double progress = 0;
   String? error;
   String thumbnailFilePath = '';
+
   @override
   void initState() {
     super.initState();
     init();
-    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(
-        'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4'))
-      ..initialize().then((_) {
-        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-        setState(() {
-          _chewieController = ChewieController(
-            videoPlayerController: _videoPlayerController,
-            aspectRatio: _videoPlayerController.value.aspectRatio,
-          );
-        });
-      });
+    // _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(
+    //     'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4'))
+    //   ..initialize().then((_) {
+    //     // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+    //     setState(() {
+    //       _chewieController = ChewieController(
+    //         videoPlayerController: _videoPlayerController,
+    //         aspectRatio: _videoPlayerController.value.aspectRatio,
+    //       );
+    //     });
+    //   });
     _subscription = VideoCompress.compressProgress$.subscribe((progress) {
       print('progress: $progress');
       setState(() {
@@ -65,14 +67,20 @@ class _PostPageState extends State<PostPage> {
   }
 
   void init() async {
-    user = await authRepo.user;
+    User? u = await authRepo.user;
+    final pref = await SharedPreferences.getInstance();
+    bool location = pref.getBool('location') ?? true;
+    setState(() {
+      _switchValue = location;
+      user = u;
+    });
   }
 
   @override
   void dispose() {
+    _subscription.unsubscribe();
     _videoPlayerController.dispose();
     _chewieController.dispose();
-    _subscription.unsubscribe();
     super.dispose();
   }
 
@@ -105,7 +113,7 @@ class _PostPageState extends State<PostPage> {
                       BorderRadius.circular(8), // Set the button border radius
                 ),
               ),
-              child: const Text('Upload'),
+              child: const Text('Post'),
             ),
           ),
         ],
@@ -115,10 +123,33 @@ class _PostPageState extends State<PostPage> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             children: [
+              !_switchValue
+                  ? Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Colors.red.withOpacity(0.7),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          "Enabling location helps you reach a wider audience.",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.red.withOpacity(0.7),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    )
+                  : SizedBox.shrink(),
+              const SizedBox(
+                height: 10,
+              ),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CircleAvatar(
-                    radius: 20,
+                    radius: 24,
                     backgroundImage: (user != null) &&
                             (user?.profile_picture != null)
                         ? NetworkImage(
@@ -132,20 +163,33 @@ class _PostPageState extends State<PostPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(user?.fullname ?? ''),
+                      Text(
+                        user?.fullname ?? '',
+                        style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w500,
+                            color: const Color.fromARGB(255, 0, 0, 0)
+                                .withOpacity(0.8)),
+                      ),
+                      const SizedBox(
+                        height: 8,
+                      ),
                       Row(
                         children: [
                           Container(
-                            height: 30,
+                            width: 100,
+                            height: 35,
                             padding: const EdgeInsets.only(left: 15),
                             decoration: BoxDecoration(
                                 color: Colors.grey[300],
                                 borderRadius: BorderRadius.circular(8)),
                             child: DropdownButton<String>(
+                              isExpanded: true,
+                              elevation: 16,
                               dropdownColor: Colors.amber,
                               iconSize: 35,
                               borderRadius:
-                                  BorderRadius.all(Radius.circular(16)),
+                                  const BorderRadius.all(Radius.circular(16)),
                               value: dropdownValue,
                               underline: const SizedBox(),
                               onChanged: (String? newValue) {
@@ -162,7 +206,7 @@ class _PostPageState extends State<PostPage> {
                                   value: value,
                                   child: Text(
                                     value,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 18),
                                   ),
@@ -170,16 +214,22 @@ class _PostPageState extends State<PostPage> {
                               }).toList(),
                             ),
                           ),
+                          const SizedBox(
+                            width: 20,
+                          ),
                           Row(
                             children: [
-                              Text("location",
+                              Text("Location",
                                   style: TextStyle(
-                                      fontSize: 15,
-                                      color: Color.fromARGB(255, 0, 0, 0)
+                                      fontSize: 20,
+                                      color: const Color.fromARGB(255, 0, 0, 0)
                                           .withOpacity(0.5))),
+                              const SizedBox(
+                                width: 5,
+                              ),
                               SizedBox(
-                                height: 20,
-                                width: 30,
+                                height: 30,
+                                width: 40,
                                 child: FittedBox(
                                   fit: BoxFit.fill,
                                   child: Switch(
@@ -196,32 +246,33 @@ class _PostPageState extends State<PostPage> {
                         ],
                       ),
                       Container(
-                        margin: EdgeInsets.symmetric(vertical: 20),
+                        margin: const EdgeInsets.symmetric(vertical: 20),
                         width: 180,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             GestureDetector(
-                              onTap: () async {
-                                await mediaPicker.pickImage(ImageSource.camera);
-                                setState(() {});
-                              },
-                              child: Icon(Icons.camera_alt_outlined),
-                            ),
+                                onTap: () async {
+                                  await mediaPicker
+                                      .pickImage(ImageSource.camera);
+                                  setState(() {});
+                                },
+                                child:
+                                    const Icon(FluentIcons.camera_20_regular)),
                             GestureDetector(
                               onTap: () async {
                                 await mediaPicker
                                     .pickImage(ImageSource.gallery);
                                 setState(() {});
                               },
-                              child: Icon(Icons.image),
+                              child: const Icon(FluentIcons.image_20_regular),
                             ),
                             GestureDetector(
                               onTap: () async {
                                 await mediaPicker.pickAudio();
                                 setState(() {});
                               },
-                              child: Icon(Icons.mic),
+                              child: const Icon(FluentIcons.mic_20_regular),
                             ),
                             GestureDetector(
                               onTap: () async {
@@ -229,30 +280,18 @@ class _PostPageState extends State<PostPage> {
                                     .pickVideo(ImageSource.gallery);
                                 setState(() {});
                               },
-                              child: Icon(Icons.play_circle_outline_outlined),
+                              child:
+                                  const Icon(FluentIcons.video_clip_20_regular),
                             )
                           ],
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ],
               ),
               isLoading && error == null
-                  ? Column(
-                      children: [
-                        const Center(
-                            child: CircularProgressIndicator.adaptive()),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Uploading ${progress.toStringAsFixed(2)}%',
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    )
+                  ? UploadProgress(progress: progress)
                   : error != null
                       ? Container(
                           padding: const EdgeInsets.all(8),
@@ -264,61 +303,104 @@ class _PostPageState extends State<PostPage> {
                               style: const TextStyle(color: Colors.white)),
                         )
                       : Container(),
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.grey,
-                    width: 1.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 10.0),
-                child: TextField(
-                  autofocus: true,
-                  controller: _textEditingController,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: "What's on your mind?",
-                    hintStyle: TextStyle(
-                      color: Colors.grey,
-                    ),
-                  ),
+              const SizedBox(
+                height: 20,
+              ),
+              TextField(
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+                autofocus: true,
+                controller: _textEditingController,
+                minLines: 1,
+                maxLines: 12,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: "What's on your mind?",
+                  hintStyle: TextStyle(color: Colors.grey, fontSize: 24),
                 ),
               ),
-              Row(
-                children: [
-                  const Text("Privacy setting"),
-                  const SizedBox(
-                    width: 20,
-                  ),
-                ],
-              ),
-              ElevatedButton(
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProImageEditor.file(
-                          File(selectedMedia["filePath"]),
-                          callbacks: ProImageEditorCallbacks(
-                            onImageEditingComplete: (Uint8List bytes) async {
-                              await mediaPicker.saveImageFromBytes(bytes);
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ),
-                      ),
-                    );
-                    setState(() {});
-                  },
-                  child: Text("Edit")),
               const SizedBox(
                 height: 20,
               ),
               Container(
-                child: Text(basename(selectedMedia["filePath"] ?? "")),
-              ),
-              _ShowSelectedFile(),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(8),
+                          topRight: Radius.circular(8))),
+                  child: Column(
+                    children: [
+                      Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.only(right: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 4),
+                                decoration: BoxDecoration(
+                                    color: Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: Text(selectedMedia["fileType"] ?? "",
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 18)),
+                              ),
+                              Flexible(
+                                child: Text(
+                                  basename(selectedMedia["filePath"] ?? ""),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 16,
+                                      color: Colors.grey),
+                                ),
+                              ),
+                              selectedMedia["fileType"] == 'image'
+                                  ? GestureDetector(
+                                      onTap: () async {
+                                        await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ProImageEditor.file(
+                                              File(selectedMedia["filePath"]),
+                                              callbacks:
+                                                  ProImageEditorCallbacks(
+                                                onImageEditingComplete:
+                                                    (Uint8List bytes) async {
+                                                  await mediaPicker
+                                                      .saveImageFromBytes(
+                                                          bytes);
+                                                  Navigator.pop(context);
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                        setState(() {});
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 4),
+                                        decoration: BoxDecoration(
+                                            color: Colors.blue,
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
+                                        child: const Text('Edit',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 18,
+                                                color: Colors.white)),
+                                      ),
+                                    )
+                                  : Container(),
+                            ],
+                          )),
+                      _ShowSelectedFile(),
+                    ],
+                  )),
             ],
           ),
         ),
@@ -390,6 +472,12 @@ class _PostPageState extends State<PostPage> {
             contentType: MediaType(selectedMedia["mediaType"].split(' ')[0],
                 selectedMedia["mediaType"].split(' ')[1])),
       };
+      if (_switchValue == false) {
+        formDataMap.remove("longitude");
+        formDataMap.remove("latitude");
+      }
+      ;
+
       if (thumbnailFilePath.isNotEmpty &&
           selectedMedia["fileType"] == 'video') {
         formDataMap["thumbnail"] = await MultipartFile.fromFile(
@@ -408,19 +496,19 @@ class _PostPageState extends State<PostPage> {
       _textEditingController.clear();
       trigerNotification("Post Upload", "Post uploaded successfully");
       await BlocProvider.of<PostCubit>(context).getNewPost();
+      Navigator.pop(context);
       scrollToTop();
-      pageController.jumpToTab(0);
 
       setState(() {
         isLoading = false;
       });
     } catch (e) {
       if (e is DioException) {
-        String _error = handleDioError(e);
-        print(_error);
+        String error = handleDioError(e);
+        print(error);
         setState(() {
           isLoading = false;
-          error = _error;
+          error = error;
         });
       }
       Future.delayed(const Duration(seconds: 5), () {
@@ -435,33 +523,47 @@ class _PostPageState extends State<PostPage> {
     OpenFile.open(selectedMedia["filePath"]);
   }
 
-  Widget _ShowSelectedFile() {
-    if (selectedMedia["fileType"] == 'video') {
-      _videoPlayerController =
-          VideoPlayerController.file(File(selectedMedia["filePath"]));
-
+  Future<void> initVideo() async {
+    _videoPlayerController =
+        VideoPlayerController.file(File(selectedMedia["filePath"]));
+    await _videoPlayerController.initialize();
+    // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+    setState(() {
       _chewieController = ChewieController(
         videoPlayerController: _videoPlayerController,
         aspectRatio: _videoPlayerController.value.aspectRatio,
       );
+    });
+  }
+
+  // ignore: non_constant_identifier_names
+  Widget _ShowSelectedFile() {
+    if (selectedMedia["fileType"] == 'video') {
       return thumbnailFilePath.isNotEmpty
           ? Image.file(File(thumbnailFilePath))
-          : Column(children: [
-              AspectRatio(
-                aspectRatio: _videoPlayerController.value.aspectRatio,
-                child: Chewie(controller: _chewieController),
-              )
-            ]);
+          : FutureBuilder(
+              future: initVideo(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return AspectRatio(
+                    aspectRatio: _videoPlayerController.value.aspectRatio,
+                    child: Chewie(controller: _chewieController),
+                  );
+                } else if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                }
+                return const SizedBox.shrink();
+              });
     } else if (selectedMedia["fileType"] == 'image') {
       return Image.file(File(selectedMedia["filePath"]));
     } else if (selectedMedia["fileType"] == 'file') {
-      return Container(
-          child: ElevatedButton(
+      return ElevatedButton(
         onPressed: () {
           openFile();
         },
         child: const Text('Open file'),
-      ));
+      );
     } else if (selectedMedia["fileType"] == 'audio') {
       return Container(
           child: ElevatedButton(
@@ -473,6 +575,14 @@ class _PostPageState extends State<PostPage> {
     } else {
       return const SizedBox(
         height: 320,
+        child: Center(
+          child: Text('No file selected',
+              style: TextStyle(
+                fontSize: 24,
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              )),
+        ),
       );
     }
   }
@@ -532,6 +642,70 @@ class _PostPageState extends State<PostPage> {
           text,
           style: const TextStyle(color: Colors.white, fontSize: 18),
         ),
+      ),
+    );
+  }
+}
+
+class UploadProgress extends StatelessWidget {
+  final double progress;
+
+  const UploadProgress({Key? key, required this.progress}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // // Circular progress indicator for a sleek, modern look
+          // Stack(
+          //   alignment: Alignment.center,
+          //   children: [
+          //     SizedBox(
+          //       width: 100,
+          //       height: 100,
+          //       child: CircularProgressIndicator(
+          //         value: progress / 100,
+          //         strokeWidth: 8,
+          //         backgroundColor: Colors.grey.shade200,
+          //         valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+          //       ),
+          //     ),
+          //     // Progress percentage inside the circular indicator
+          //     Text(
+          //       '${progress.toStringAsFixed(0)}%',
+          //       style: const TextStyle(
+          //         fontSize: 20,
+          //         fontWeight: FontWeight.bold,
+          //         color: Colors.black,
+          //       ),
+          //     ),
+          //   ],
+          // ),
+          // const SizedBox(height: 20),
+          // // Progress bar for another visual representation
+          Text(
+            'Uploading... ${progress.toStringAsFixed(2)}%',
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.black,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          LinearProgressIndicator(
+            value: progress / 100,
+            backgroundColor: Colors.grey.shade300,
+            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+            minHeight: 16,
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ],
       ),
     );
   }

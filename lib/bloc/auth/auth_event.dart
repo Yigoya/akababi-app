@@ -65,11 +65,9 @@ class BackEvent extends AuthEvent {
 }
 
 class GetLocationEvent extends AuthEvent {
-  bool? off;
+  bool value;
   BuildContext context;
-  GetLocationEvent({required this.context, bool? off, bool? isToggle}) {
-    this.off = off;
-  }
+  GetLocationEvent({required this.value, required this.context});
 }
 
 class LoadUserInfoEvent extends AuthEvent {

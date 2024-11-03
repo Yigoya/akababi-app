@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 // Define a custom InheritedWidget to hold the counter value
 class CounterInheritedWidget extends InheritedWidget {
   final int counter;
+  @override
   final Widget child;
 
-  CounterInheritedWidget({required this.counter, required this.child})
+  const CounterInheritedWidget(
+      {super.key, required this.counter, required this.child})
       : super(child: child);
 
   // This method allows child widgets to access the counter value
@@ -22,6 +24,8 @@ class CounterInheritedWidget extends InheritedWidget {
 
 // A StatefulWidget that uses the CounterInheritedWidget to share state
 class CounterApp extends StatefulWidget {
+  const CounterApp({super.key});
+
   @override
   _CounterAppState createState() => _CounterAppState();
 }
@@ -40,8 +44,8 @@ class _CounterAppState extends State<CounterApp> {
     return CounterInheritedWidget(
       counter: _counter,
       child: Scaffold(
-        appBar: AppBar(title: Text('InheritedWidget Example')),
-        body: Center(
+        appBar: AppBar(title: const Text('InheritedWidget Example')),
+        body: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -54,7 +58,7 @@ class _CounterAppState extends State<CounterApp> {
         floatingActionButton: FloatingActionButton(
           onPressed: _incrementCounter,
           tooltip: 'Increment',
-          child: Icon(Icons.add),
+          child: const Icon(Icons.add),
         ),
       ),
     );
@@ -63,6 +67,8 @@ class _CounterAppState extends State<CounterApp> {
 
 // A widget that reads the counter value from the InheritedWidget
 class CounterValue extends StatelessWidget {
+  const CounterValue({super.key});
+
   @override
   Widget build(BuildContext context) {
     // Accessing the counter value via CounterInheritedWidget.of
@@ -71,13 +77,13 @@ class CounterValue extends StatelessWidget {
 
     return Text(
       '$counter',
-      style: TextStyle(fontSize: 48),
+      style: const TextStyle(fontSize: 48),
     );
   }
 }
 
 void main() {
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     home: CounterApp(),
   ));
 }

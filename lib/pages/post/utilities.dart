@@ -199,6 +199,8 @@ class MediaProcessing {
   }
 
   Future<File?> createVideoThumbnail(String videoPath) async {
+    return null;
+
     // final directory = await getTemporaryDirectory();
     // final thumbnailPath = await VideoThumbnail.thumbnailFile(
     //   video: videoPath,

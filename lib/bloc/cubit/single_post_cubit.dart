@@ -13,8 +13,8 @@ class SinglePostCubit extends Cubit<SinglePostState> {
   void getPostById(int id) async {
     Logger().d('get post by id $id');
     try {
-      if (this.state is SinglePostLoaded) {
-        final post = (this.state as SinglePostLoaded).post;
+      if (state is SinglePostLoaded) {
+        final post = (state as SinglePostLoaded).post;
         if (post['id'] != id) {
           emit(SinglePostLoading());
         }
@@ -29,8 +29,8 @@ class SinglePostCubit extends Cubit<SinglePostState> {
 
   void getRepostById(int id) async {
     try {
-      if (this.state is SinglePostLoaded) {
-        final post = (this.state as SinglePostLoaded).post;
+      if (state is SinglePostLoaded) {
+        final post = (state as SinglePostLoaded).post;
         if (post['id'] != id) {
           emit(SinglePostLoading());
         }

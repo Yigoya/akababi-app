@@ -1,6 +1,5 @@
 import 'package:akababi/component/Button.dart';
 import 'package:akababi/component/Error.dart';
-import 'package:akababi/component/OptionText.dart';
 import 'package:akababi/component/TextInput.dart';
 import 'package:flutter/material.dart';
 

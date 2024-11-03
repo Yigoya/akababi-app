@@ -8,7 +8,8 @@ class PostFollowButton extends StatefulWidget {
   final String friendshipStatus;
   final int id;
 
-  PostFollowButton({required this.friendshipStatus, required this.id});
+  const PostFollowButton(
+      {super.key, required this.friendshipStatus, required this.id});
 
   @override
   State<PostFollowButton> createState() => _PostFollowButtonState();
@@ -65,7 +66,7 @@ class _PostFollowButtonState extends State<PostFollowButton> {
               }
             },
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: status == 'Follow' ? Colors.red : null,
                 borderRadius: BorderRadius.circular(5),
@@ -81,6 +82,6 @@ class _PostFollowButtonState extends State<PostFollowButton> {
               ),
             ),
           )
-        : SizedBox.shrink();
+        : const SizedBox.shrink();
   }
 }

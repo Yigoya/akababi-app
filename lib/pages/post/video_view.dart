@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:chewie/chewie.dart';
 import 'package:video_player/video_player.dart';
@@ -10,7 +9,8 @@ class VideoPlayerPage extends StatefulWidget {
   final String postedBy;
   final int likes;
 
-  VideoPlayerPage({
+  const VideoPlayerPage({
+    super.key,
     required this.videoUrl,
     required this.postedBy,
     required this.likes,
@@ -90,21 +90,6 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Text(
-          widget.postedBy,
-          style: const TextStyle(color: Colors.white),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {
-              // Add more actions like report or share
-            },
-          ),
-        ],
-      ),
       body: GestureDetector(
         onDoubleTap: _onDoubleTapLike,
         onLongPress: _onLongPressDownload,
@@ -113,7 +98,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage>
             Center(
               child: _videoPlayerController.value.isInitialized
                   ? Chewie(controller: _chewieController)
-                  : Center(child: CircularProgressIndicator()),
+                  : const Center(child: CircularProgressIndicator()),
             ),
             // Heart animation on double-tap
             Center(

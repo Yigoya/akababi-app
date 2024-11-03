@@ -89,6 +89,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
+  auto_size_text:
+    dependency: transitive
+    description:
+      name: auto_size_text
+      sha256: "3f5261cd3fb5f2a9ab4e2fc3fba84fd9fcaac8821f20a1d4e71f557521b22599"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.0"
   awesome_notifications:
     dependency: "direct main"
     description:
@@ -97,14 +105,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.9.3+1"
-  better_player:
-    dependency: "direct main"
-    description:
-      name: better_player
-      sha256: fc8883218ab7a2fd7e916956c1f59b5c26c3cab1e4dfd6f051901f5e4da39619
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.84"
   bloc:
     dependency: transitive
     description:
@@ -337,6 +337,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  fluentui_system_icons:
+    dependency: "direct main"
+    description:
+      name: fluentui_system_icons
+      sha256: "3a84a29fb45d5e38996889a1f826f98f4bbd6cc6446bc367eb782acbf85d6c55"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.259"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -374,6 +382,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.2"
+  flutter_holo_date_picker:
+    dependency: "direct main"
+    description:
+      name: flutter_holo_date_picker
+      sha256: "0ed500c3b2c769c9b6bdeda289cf5c568d9b8d5b1a354438de4d83f14105ffe5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -400,14 +416,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_widget_from_html_core:
-    dependency: transitive
-    description:
-      name: flutter_widget_from_html_core
-      sha256: b1048fd119a14762e2361bd057da608148a895477846d6149109b2151d2f7abf
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.15.2"
   font_awesome_flutter:
     dependency: "direct main"
     description:
@@ -532,18 +540,18 @@ packages:
     dependency: transitive
     description:
       name: google_sign_in_android
-      sha256: "0608de03fc541ece4f91ba3e01a68b17cce7a6cf42bd59e40bbe5c55cc3a49d8"
+      sha256: "0928059d2f0840f63c7b07a30cf73b593ae872cdd0dbd46d1b9ba878d2599c01"
       url: "https://pub.dev"
     source: hosted
-    version: "6.1.30"
+    version: "6.1.33"
   google_sign_in_ios:
     dependency: transitive
     description:
       name: google_sign_in_ios
-      sha256: "4898410f55440049e1ba8f15411612d9f89299d89c61cd9baf7e02d56ff81ac7"
+      sha256: "83f015169102df1ab2905cf8abd8934e28f87db9ace7a5fa676998842fed228a"
       url: "https://pub.dev"
     source: hosted
-    version: "5.7.7"
+    version: "5.7.8"
   google_sign_in_platform_interface:
     dependency: transitive
     description:
@@ -760,14 +768,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.0"
-  logging:
-    dependency: transitive
-    description:
-      name: logging
-      sha256: "623a88c9594aa774443aa3eb2d41807a48486b5613e67599fb4c41c0ad47c340"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.0"
   matcher:
     dependency: transitive
     description:

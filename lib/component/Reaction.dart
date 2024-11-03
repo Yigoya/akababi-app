@@ -47,7 +47,7 @@ class _ReactionState extends State<Reaction>
   final logger = Logger();
   double _scale = 1.0;
   late AnimationController _controller;
-  
+
   @override
   void initState() {
     setState(() {
@@ -55,7 +55,7 @@ class _ReactionState extends State<Reaction>
     });
     logger.i(reaction);
     _controller = AnimationController(
-      duration: Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 100),
       vsync: this,
       lowerBound: 0.0,
       upperBound: 0.1,
@@ -73,11 +73,6 @@ class _ReactionState extends State<Reaction>
     setState(() {
       reaction = widget.reaction;
     });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   void _onTapDown(TapDownDetails details) {
@@ -254,8 +249,9 @@ class _ReactionState extends State<Reaction>
           child: Transform.scale(
             scale: _scale,
             child: Container(
-              margin: EdgeInsets.only(left: 16, top: 5, bottom: 5),
-              padding: EdgeInsets.only(left: 24, right: 24, top: 5, bottom: 5),
+              margin: const EdgeInsets.only(left: 16, top: 5, bottom: 5),
+              padding:
+                  const EdgeInsets.only(left: 24, right: 24, top: 5, bottom: 5),
               decoration: BoxDecoration(
                 color: Colors.black.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(24),

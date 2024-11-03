@@ -17,3 +17,9 @@ final class PictureLoaded extends PictureState {
 
   PictureLoaded({required this.imagePath});
 }
+
+final class PictureLoadedInternet extends PictureState {
+  final String imageUrl;
+
+  PictureLoadedInternet({required this.imageUrl});
+}

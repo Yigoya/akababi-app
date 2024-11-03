@@ -8,7 +8,6 @@ import 'package:akababi/pages/notification/NotificationPage.dart';
 import 'package:akababi/pages/post/SinglePostPage.dart';
 import 'package:akababi/pages/profile/PersonProfile.dart';
 import 'package:akababi/pages/profile/ProfilePage.dart';
-import 'package:akababi/pages/profile/UserProfile2.dart';
 import 'package:akababi/pages/setting/SettingPage.dart';
 import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +25,8 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
           settings: settings, builder: (_) => const HomePage());
     case '/login':
-      return MaterialPageRoute(settings: settings, builder: (_) => LoginPage());
+      return MaterialPageRoute(
+          settings: settings, builder: (_) => const LoginPage());
     case '/forgetpassword':
       return MaterialPageRoute(
           settings: settings, builder: (_) => const ForgetPassword());

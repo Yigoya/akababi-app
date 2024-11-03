@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProfilePicturePage extends StatefulWidget {
+  const ProfilePicturePage({super.key});
+
   @override
   State<ProfilePicturePage> createState() => _ProfilePicturePageState();
 }
@@ -17,6 +19,8 @@ class _ProfilePicturePageState extends State<ProfilePicturePage> {
     super.initState();
     BlocProvider.of<PictureCubit>(context).getImage();
   }
+
+  bool isLeading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +36,13 @@ class _ProfilePicturePageState extends State<ProfilePicturePage> {
                 "Add a profile picture",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
                 "Add a profile picture so that your friends know it's you.\nEveryone will be able to see your picture",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               ),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
               BlocBuilder<PictureCubit, PictureState>(
                 builder: ((context, state) {
                   if (state is PictureLoaded) {
@@ -74,7 +78,7 @@ class _ProfilePicturePageState extends State<ProfilePicturePage> {
                                         child: const Icon(Icons.camera))))
                           ],
                         ),
-                        SizedBox(height: 30),
+                        const SizedBox(height: 30),
                         CommonButton(
                           active: true,
                           buttonText: "Get Started",
@@ -85,83 +89,101 @@ class _ProfilePicturePageState extends State<ProfilePicturePage> {
                         ),
                       ],
                     );
-                  } else if (state is PictureEmpty) {
-                    if (state.imagePath != '') {
-                      return Column(
-                        children: [
-                          Stack(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle),
-                                child: ClipOval(
-                                    child: Image(
-                                  image: NetworkImage(
-                                      "${AuthRepo.SERVER}/${state.imagePath}"),
-                                  width: 150,
-                                  height: 150,
-                                  fit: BoxFit.cover,
-                                )),
-                              ),
-                              Positioned(
-                                  bottom: 1,
-                                  right: 1,
-                                  child: IconButton(
-                                      onPressed: () {
-                                        BlocProvider.of<PictureCubit>(context)
-                                            .setImage();
-                                      },
-                                      icon: Container(
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: const BoxDecoration(
-                                              color: Colors.white,
-                                              shape: BoxShape.circle),
-                                          child: const Icon(Icons.camera))))
-                            ],
-                          ),
-                          SizedBox(height: 30),
-                          CommonButton(
-                            active: true,
-                            buttonText: "Add Picture",
+                  } else {
+                    // if (state.imagePath != '') {
+                    //   return Column(
+                    //     children: [
+                    //       Stack(
+                    //         children: [
+                    //           Container(
+                    //             padding: const EdgeInsets.all(4),
+                    //             decoration: const BoxDecoration(
+                    //                 color: Colors.white,
+                    //                 shape: BoxShape.circle),
+                    //             child: ClipOval(
+                    //                 child: Image(
+                    //               image: NetworkImage(
+                    //                   "${AuthRepo.SERVER}/${state.imagePath}"),
+                    //               width: 150,
+                    //               height: 150,
+                    //               fit: BoxFit.cover,
+                    //             )),
+                    //           ),
+                    //           Positioned(
+                    //               bottom: 1,
+                    //               right: 1,
+                    //               child: IconButton(
+                    //                   onPressed: () {
+                    //                     BlocProvider.of<PictureCubit>(context)
+                    //                         .setImage();
+                    //                   },
+                    //                   icon: Container(
+                    //                       padding: const EdgeInsets.all(4),
+                    //                       decoration: const BoxDecoration(
+                    //                           color: Colors.white,
+                    //                           shape: BoxShape.circle),
+                    //                       child: const Icon(Icons.camera))))
+                    //         ],
+                    //       ),
+                    //       const SizedBox(height: 30),
+                    //       CommonButton(
+                    //         active: true,
+                    //         buttonText: "Add Picture",
+                    //         onPressed: () {
+                    //           BlocProvider.of<PictureCubit>(context).setImage();
+                    //         },
+                    //       ),
+                    //       const SizedBox(height: 10),
+                    //       TextButton(
+                    //         onPressed: () {
+                    //           // Skip
+                    //           Navigator.pushNamedAndRemoveUntil(
+                    //               context, "/", (route) => false);
+                    //         },
+                    //         child: const Text(
+                    //           "Skip",
+                    //           style: TextStyle(fontSize: 18, color: Colors.red),
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   );
+                    // }
+                    return Column(
+                      children: [
+                        ClipOval(
+                          child: IconButton(
                             onPressed: () {
+                              setState(() {
+                                isLeading = true;
+                              });
                               BlocProvider.of<PictureCubit>(context).setImage();
+                              setState(() {
+                                isLeading = false;
+                              });
                             },
-                          ),
-                          SizedBox(height: 10),
-                          TextButton(
-                            onPressed: () {
-                              // Skip
-                              Navigator.pushNamedAndRemoveUntil(
-                                  context, "/", (route) => false);
-                            },
-                            child: Text(
-                              "Skip",
-                              style: TextStyle(fontSize: 18, color: Colors.red),
+                            icon: Container(
+                              decoration:
+                                  const BoxDecoration(color: Colors.black),
+                              child: isLeading
+                                  ? CircularProgressIndicator()
+                                  : const Icon(
+                                      Icons.person,
+                                      size: 150,
+                                      color: Colors.white,
+                                    ),
                             ),
                           ),
-                        ],
-                      );
-                    }
-                    return ClipOval(
-                      child: IconButton(
-                        onPressed: () {
-                          BlocProvider.of<PictureCubit>(context).setImage();
-                        },
-                        icon: Container(
-                          decoration: const BoxDecoration(color: Colors.black),
-                          child: const Icon(
-                            Icons.person,
-                            size: 150,
-                            color: Colors.white,
-                          ),
                         ),
-                      ),
-                    );
-                  } else {
-                    return const Center(
-                      child: Text("loading ..."),
+                        const SizedBox(height: 30),
+                        CommonButton(
+                          active: true,
+                          buttonText: "Skip",
+                          onPressed: () {
+                            Navigator.pushNamedAndRemoveUntil(
+                                context, "/", (route) => false);
+                          },
+                        ),
+                      ],
                     );
                   }
                 }),

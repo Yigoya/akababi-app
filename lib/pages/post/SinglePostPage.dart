@@ -1,4 +1,3 @@
-import 'package:akababi/bloc/cubit/post_cubit.dart' as PostCubit;
 import 'package:akababi/bloc/cubit/single_post_cubit.dart';
 import 'package:akababi/component/PostItem.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
@@ -95,7 +94,7 @@ class _SinglePostPageState extends State<SinglePostPage> {
                               ),
                             ),
                           )
-                        : SizedBox.shrink(),
+                        : const SizedBox.shrink(),
                     state.post['comment'] != null
                         ? ListView.builder(
                             shrinkWrap: true,
@@ -108,13 +107,13 @@ class _SinglePostPageState extends State<SinglePostPage> {
                   ],
                 );
               } else if (state is SinglePostLoading) {
-                return PostItemSkeleton();
+                return const PostItemSkeleton();
               } else if (state is PostError) {
                 return Center(
                   child: Text(state.error),
                 );
               }
-              return PostItemSkeleton(); // Placeholder widget if the state is not SinglePostLoaded
+              return const PostItemSkeleton(); // Placeholder widget if the state is not SinglePostLoaded
             },
           ),
         ),
@@ -200,7 +199,8 @@ class CommentCard extends StatelessWidget {
                 ? NetworkImage(
                     '${AuthRepo.SERVER}/${comment['user']['profile_picture']}',
                   ) as ImageProvider
-                : AssetImage('assets/image/defaultprofile.png'), // User avatar
+                : const AssetImage(
+                    'assets/image/defaultprofile.png'), // User avatar
           ),
           const SizedBox(width: 12.0),
           Expanded(

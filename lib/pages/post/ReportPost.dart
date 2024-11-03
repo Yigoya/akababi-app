@@ -79,9 +79,9 @@ class _ReportPostPageState extends State<ReportPostPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Post\'s Content:',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -151,8 +151,8 @@ class _ReportPostPageState extends State<ReportPostPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                         content: res
-                            ? Text('Report submitted')
-                            : Text("Report didn't submitted")),
+                            ? const Text('Report submitted')
+                            : const Text("Report didn't submitted")),
                   );
                 },
                 child: const Text('Submit Report'),

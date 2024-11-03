@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CodeVerificationPage extends StatefulWidget {
+  const CodeVerificationPage({super.key});
+
   @override
   State<CodeVerificationPage> createState() => _CodeVerificationPageState();
 }
@@ -40,23 +42,23 @@ class _CodeVerificationPageState extends State<CodeVerificationPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "Enter verification code",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               'We have sent a verification code to your email address.',
               style: TextStyle(color: Colors.grey[600]),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             BlocBuilder<SignupCubit, SignupState>(
               builder: (context, state) {
                 if (state is SignupLoading) {
-                  return BeautifulLoader(isLoading: true);
+                  return const BeautifulLoader(isLoading: true);
                 } else if (state is SignupFailed) {
                   return BeautifulLoader(
                       isLoading: false, errorMessage: state.message);
@@ -64,13 +66,13 @@ class _CodeVerificationPageState extends State<CodeVerificationPage> {
                 return Container();
               },
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             CommonTextField(
               onChanged: _onChanged,
               labelText: 'Verification code',
               controller: codeController,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             CommonButton(
               active: active,
               buttonText: 'Verify',
@@ -85,17 +87,17 @@ class _CodeVerificationPageState extends State<CodeVerificationPage> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => SignUpPasswordPage()));
+                        builder: (context) => const SignUpPasswordPage()));
               },
             ),
-            Spacer(),
+            const Spacer(),
             TextButton(
               onPressed: () {
                 // Handle resend code action
                 context.read<SignupCubit>().resendCode();
                 codeController.clear();
               },
-              child: Text(
+              child: const Text(
                 'Resend code',
                 style: TextStyle(color: Colors.red),
               ),
@@ -104,7 +106,7 @@ class _CodeVerificationPageState extends State<CodeVerificationPage> {
               onPressed: () {
                 // Handle already have an account action
               },
-              child: Text(
+              child: const Text(
                 'I already have an account',
                 style: TextStyle(color: Colors.red),
               ),

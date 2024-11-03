@@ -6,7 +6,8 @@ class CommonTextField extends StatefulWidget {
   final bool obscureText;
   final Function(String) onChanged;
 
-  CommonTextField({
+  const CommonTextField({
+    super.key,
     required this.labelText,
     required this.controller,
     this.obscureText = false,

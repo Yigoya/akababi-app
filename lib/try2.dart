@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 
 class InfiniteScrollExample extends StatefulWidget {
+  const InfiniteScrollExample({super.key});
+
   @override
   _InfiniteScrollExampleState createState() => _InfiniteScrollExampleState();
 }
@@ -23,7 +25,10 @@ class _InfiniteScrollExampleState extends State<InfiniteScrollExample> {
 
     // Add listener to scroll controller
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent && hasMore && !isLoading) {
+      if (_scrollController.position.pixels ==
+              _scrollController.position.maxScrollExtent &&
+          hasMore &&
+          !isLoading) {
         _fetchPosts(); // Fetch more data when user reaches end of the list
       }
     });
@@ -71,7 +76,7 @@ class _InfiniteScrollExampleState extends State<InfiniteScrollExample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Infinite Scroll Example')),
+      appBar: AppBar(title: const Text('Infinite Scroll Example')),
       body: ListView.builder(
         controller: _scrollController,
         itemCount: posts.length + 1,
@@ -82,16 +87,16 @@ class _InfiniteScrollExampleState extends State<InfiniteScrollExample> {
               subtitle: Text(posts[index]['body']),
             );
           } else if (hasMore) {
-            return Center(
+            return const Center(
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(8.0),
                 child: CircularProgressIndicator(),
               ),
             );
           } else {
-            return Center(
+            return const Center(
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(8.0),
                 child: Text('No more posts'),
               ),
             );
@@ -100,41 +105,42 @@ class _InfiniteScrollExampleState extends State<InfiniteScrollExample> {
       ),
     );
   }
-  int? lastPostId;  // Tracks the ID of the last post
 
-Future<void> _fetchPosts2() async {
-  if (isLoading) return;
+  int? lastPostId; // Tracks the ID of the last post
 
-  setState(() {
-    isLoading = true;
-  });
-
-  try {
-    final response = await _dio.get(
-      'https://your-backend.com/posts',
-      queryParameters: {
-        'lastPostId': lastPostId,  // Pass the last loaded post ID
-        'limit': limit,
-      },
-    );
-    final List<dynamic> newPosts = response.data;
+  Future<void> _fetchPosts2() async {
+    if (isLoading) return;
 
     setState(() {
-      if (newPosts.isNotEmpty) {
-        lastPostId = newPosts.last['id'];  // Update the lastPostId to the latest post ID
-        posts.addAll(newPosts);
-      }
-      if (newPosts.length < limit) {
-        hasMore = false;  // No more posts to load
-      }
+      isLoading = true;
     });
-  } catch (e) {
-    print('Error fetching posts: $e');
-  } finally {
-    setState(() {
-      isLoading = false;
-    });
+
+    try {
+      final response = await _dio.get(
+        'https://your-backend.com/posts',
+        queryParameters: {
+          'lastPostId': lastPostId, // Pass the last loaded post ID
+          'limit': limit,
+        },
+      );
+      final List<dynamic> newPosts = response.data;
+
+      setState(() {
+        if (newPosts.isNotEmpty) {
+          lastPostId = newPosts
+              .last['id']; // Update the lastPostId to the latest post ID
+          posts.addAll(newPosts);
+        }
+        if (newPosts.length < limit) {
+          hasMore = false; // No more posts to load
+        }
+      });
+    } catch (e) {
+      print('Error fetching posts: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
-}
-
 }

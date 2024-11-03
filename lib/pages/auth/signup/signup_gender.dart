@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class GenderSelectionPage extends StatefulWidget {
+  const GenderSelectionPage({super.key});
+
   @override
   _GenderSelectionPageState createState() => _GenderSelectionPageState();
 }
@@ -27,17 +29,17 @@ class _GenderSelectionPageState extends State<GenderSelectionPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "What's Your Gender?",
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               "You can change who sees your gender on profile later",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
@@ -47,7 +49,7 @@ class _GenderSelectionPageState extends State<GenderSelectionPage> {
               child: Column(
                 children: [
                   RadioListTile<String>(
-                    title: Text("Female"),
+                    title: const Text("Female"),
                     value: "female",
                     groupValue: _selectedGender,
                     onChanged: (value) {
@@ -58,7 +60,7 @@ class _GenderSelectionPageState extends State<GenderSelectionPage> {
                     },
                   ),
                   RadioListTile<String>(
-                    title: Text("Male"),
+                    title: const Text("Male"),
                     value: "male",
                     groupValue: _selectedGender,
                     onChanged: (value) {
@@ -83,7 +85,7 @@ class _GenderSelectionPageState extends State<GenderSelectionPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SignUpEmailPage(),
+                    builder: (context) => const SignUpEmailPage(),
                   ),
                 );
               },

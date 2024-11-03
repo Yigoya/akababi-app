@@ -16,10 +16,12 @@ import 'package:akababi/pages/profile/PersonProfile.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:akababi/utility.dart';
 import 'package:chewie/chewie.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import "package:flutter_feather_icons/flutter_feather_icons.dart";
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:logger/logger.dart';
 import 'package:video_player/video_player.dart';
@@ -40,12 +42,11 @@ class _PostItemState extends State<PostItem> {
   ChewieController? chewieController;
   bool isVideoLoaded = false;
   AudioPlayer? _audioPlayer;
-  Future<void>? _initializeFuture;
-  bool _hasError = false;
   double videoRatio = 200;
   User? user0;
   bool liked = false;
   String likes = '';
+  bool isContentExpanded = false;
   Map<String, IconData> privacySettingIcons = {
     'public': Icons.public,
     'private': Icons.lock,
@@ -73,16 +74,7 @@ class _PostItemState extends State<PostItem> {
         });
       } catch (e) {
         print("Error initializing video player: $e");
-        setState(() {
-          _hasError = true;
-        });
       }
-    }
-    if (media['audio'] != null) {
-      print(AuthRepo.SERVER + '/' + media['audio']);
-      _audioPlayer = AudioPlayer();
-      _initializeFuture =
-          _initializePlayer(AuthRepo.SERVER + '/' + media['audio']);
     }
   }
 
@@ -120,12 +112,14 @@ class _PostItemState extends State<PostItem> {
     Map<String, dynamic>? repostUser = widget.post['repost_user'] != null
         ? widget.post['repost_user'] as Map<String, dynamic>
         : null;
+
+    bool shouldShowSeeMore = widget.post['content'].length > 100;
     return Stack(
       children: [
         Container(
           color: Colors.white,
-          margin: EdgeInsets.only(bottom: 8),
-          padding: EdgeInsets.symmetric(vertical: 8),
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -141,7 +135,7 @@ class _PostItemState extends State<PostItem> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => PersonPage(
-                                            id: widget.post['user']['id'],
+                                            id: repostUser['id'],
                                           )));
                             },
                             child: Row(
@@ -162,12 +156,12 @@ class _PostItemState extends State<PostItem> {
                                                 ? NetworkImage(
                                                     '${AuthRepo.SERVER}/${repostUser['profile_picture']}',
                                                   ) as ImageProvider
-                                                : AssetImage(
+                                                : const AssetImage(
                                                     'assets/image/defaultprofile.png'),
                                             fit: BoxFit.cover,
                                           ),
                                         )),
-                                    SizedBox(
+                                    const SizedBox(
                                       width: 5,
                                     ),
                                     Column(
@@ -176,16 +170,15 @@ class _PostItemState extends State<PostItem> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                          '${user["full_name"]}',
+                                          '${repostUser["full_name"]}',
                                           style: GoogleFonts.exo(
-                                              textStyle: TextStyle(
+                                              textStyle: const TextStyle(
                                                   fontSize: 20,
                                                   fontWeight: FontWeight.w500)),
                                         ),
-                                        Text(
-                                            "@${widget.post['user']['username']}",
+                                        Text("@${repostUser['username']}",
                                             style: GoogleFonts.exo(
-                                                textStyle: TextStyle(
+                                                textStyle: const TextStyle(
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.w400))),
@@ -210,9 +203,9 @@ class _PostItemState extends State<PostItem> {
                                             },
                                           );
                                         },
-                                        icon: Icon(Icons.more_vert),
+                                        icon: const Icon(Icons.more_vert),
                                       )
-                                    : SizedBox.shrink(),
+                                    : const SizedBox.shrink(),
                               ],
                             ),
                           ),
@@ -221,7 +214,7 @@ class _PostItemState extends State<PostItem> {
                           padding: const EdgeInsets.only(left: 16.0, top: 8),
                           child: Text(widget.post['repost_content'],
                               style: GoogleFonts.spaceGrotesk(
-                                  textStyle: TextStyle(
+                                  textStyle: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w400))),
                         ),
@@ -229,14 +222,15 @@ class _PostItemState extends State<PostItem> {
                     )
                   : Container(),
               Container(
-                padding: EdgeInsets.only(top: 8),
-                margin: repostUser != null
-                    ? EdgeInsets.only(left: 16, top: 4, right: 8)
-                    : null,
+                padding: const EdgeInsets.only(top: 8),
+                margin: repostUser != null ? const EdgeInsets.all(4) : null,
                 decoration: repostUser != null
                     ? BoxDecoration(
                         border: Border.all(color: Colors.grey[400]!),
-                        borderRadius: BorderRadius.circular(10))
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          topRight: Radius.circular(12),
+                        ))
                     : null,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,16 +258,9 @@ class _PostItemState extends State<PostItem> {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       image: DecorationImage(
-                                        image: (repostUser == null &&
-                                                    widget.post['user'][
-                                                            'profile_picture'] !=
-                                                        null) ||
-                                                (repostUser != null &&
-                                                    repostUser[
-                                                            'profile_picture'] !=
-                                                        null)
+                                        image: user['profile_picture'] != null
                                             ? NetworkImage(
-                                                '${AuthRepo.SERVER}/${repostUser != null ? repostUser['profile_picture'] : user['profile_picture']}',
+                                                '${AuthRepo.SERVER}/${user['profile_picture']}',
                                               ) as ImageProvider
                                             : const AssetImage(
                                                 'assets/image/defaultprofile.png'),
@@ -296,6 +283,23 @@ class _PostItemState extends State<PostItem> {
                                     ),
                                     Row(
                                       children: [
+                                        Text(
+                                          '@${user['username']}', // Timestamp, e.g., '2h ago'
+                                          style: const TextStyle(
+                                            fontSize: 14.0,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                        Container(
+                                          margin: const EdgeInsets.symmetric(
+                                              horizontal: 4.0),
+                                          height: 4.0,
+                                          width: 4.0,
+                                          decoration: const BoxDecoration(
+                                            color: Colors.grey,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
                                         Text(
                                           widget.post[
                                               'timeAgo'], // Timestamp, e.g., '2h ago'
@@ -324,7 +328,7 @@ class _PostItemState extends State<PostItem> {
                                     ),
                                   ],
                                 ),
-                                SizedBox(
+                                const SizedBox(
                                   width: 10,
                                 ),
                                 PostFollowButton(
@@ -360,11 +364,57 @@ class _PostItemState extends State<PostItem> {
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16.0, vertical: 8.0),
-                          child: Text(widget.post['content'],
-                              style: GoogleFonts.spaceGrotesk(
-                                  textStyle: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w400))),
+                          // child: Text(widget.post['content'],
+                          //     style: GoogleFonts.spaceGrotesk(
+                          //         textStyle: const TextStyle(
+                          //             fontSize: 18,
+                          //             fontWeight: FontWeight.w400))),
+                          child: shouldShowSeeMore && !isContentExpanded
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${widget.post['content'].substring(0, 100)}...',
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          isContentExpanded =
+                                              true; // Expand the text
+                                        });
+                                      },
+                                      child: const Text(
+                                        'See more',
+                                        style: TextStyle(
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(widget.post['content']),
+                                    if (shouldShowSeeMore)
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            isContentExpanded =
+                                                false; // Collapse the text
+                                          });
+                                        },
+                                        child: const Text(
+                                          'See less',
+                                          style: TextStyle(
+                                              color: Colors.blue,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                  ],
+                                ),
                         ),
                         Stack(
                           children: [
@@ -374,11 +424,11 @@ class _PostItemState extends State<PostItem> {
                                     Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                            builder: (context) => ImageViewingPage(
-                                                imageUrl:
-                                                    '${AuthRepo.SERVER}/${widget.post['media']}',
-                                                postedBy: user["full_name"],
-                                                likes: 12)));
+                                            builder: (context) =>
+                                                ImageViewingPage(
+                                                  imageUrl:
+                                                      '${AuthRepo.SERVER}/${widget.post['media']}',
+                                                )));
                                   } else if (widget.post['media_type'] ==
                                       'video') {
                                     Navigator.push(
@@ -451,54 +501,53 @@ class _PostItemState extends State<PostItem> {
                         ),
                       ],
                     ),
-                    likes != '' || widget.post['comment_share'] != null
-                        ? GestureDetector(
-                            onTap: () {
-                              BlocProvider.of<SinglePostCubit>(context)
-                                  .getReaction(widget.post['post_id']);
-                              _showWhoLiked(context);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16.0, vertical: 8),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  likes != ''
-                                      ? Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Icon(
-                                              Icons.favorite,
-                                              color: Colors.red,
-                                              size: 20,
-                                            ),
-                                            SizedBox(
-                                              width: 5,
-                                            ),
-                                            Text('$likes liked'),
-                                          ],
-                                        )
-                                      : SizedBox(),
-                                  Text(widget.post["comment_share"] ?? '')
-                                ],
-                              ),
-                            ),
-                          )
-                        : SizedBox(
-                            height: 12,
-                          )
                   ],
                 ),
               ),
+              likes != '' || widget.post['comment_share'] != null
+                  ? GestureDetector(
+                      onTap: () {
+                        BlocProvider.of<SinglePostCubit>(context)
+                            .getReaction(widget.post['post_id']);
+                        _showWhoLiked(context);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            likes != ''
+                                ? Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.favorite_border_outlined,
+                                        color: Color.fromARGB(117, 244, 67, 54),
+                                        size: 20,
+                                      ),
+                                      const SizedBox(
+                                        width: 5,
+                                      ),
+                                      Text('$likes liked'),
+                                    ],
+                                  )
+                                : const SizedBox(),
+                            Text(widget.post["comment_share"] ?? '')
+                          ],
+                        ),
+                      ),
+                    )
+                  : const SizedBox(
+                      height: 12,
+                    ),
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -524,27 +573,30 @@ class _PostItemState extends State<PostItem> {
                           });
                         }
                       },
-                      child: Row(
-                        children: [
-                          !liked
-                              ? const Icon(
-                                  Icons.favorite_border_rounded,
-                                  size: 20,
-                                )
-                              : const Icon(
-                                  Icons.favorite_rounded,
-                                  size: 20,
-                                  color: Colors.red,
-                                ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          const Text(
-                            "Like",
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w400),
-                          )
-                        ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            !liked
+                                ? const Icon(
+                                    Icons.favorite_border_rounded,
+                                    size: 20,
+                                  )
+                                : const Icon(
+                                    Icons.favorite_rounded,
+                                    size: 20,
+                                    color: Colors.red,
+                                  ),
+                            const SizedBox(
+                              width: 10,
+                            ),
+                            const Text(
+                              "Like",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w400),
+                            )
+                          ],
+                        ),
                       ),
                     ),
                     GestureDetector(
@@ -553,54 +605,68 @@ class _PostItemState extends State<PostItem> {
                             .getComments(widget.post['post_id']);
                         _showComment(context, widget.post['post_id']);
                       },
-                      child: const Row(
-                        children: [
-                          Icon(
-                            Icons.mode_comment_outlined,
-                            size: 20,
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Text(
-                            'Comment',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w400),
-                          )
-                        ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
+                        child: const Row(
+                          children: [
+                            Icon(
+                              Icons.mode_comment_outlined,
+                              size: 20,
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Text(
+                              'Comment',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w400),
+                            )
+                          ],
+                        ),
                       ),
                     ),
                     GestureDetector(
                       onTap: () {
-                        generateLinkAndShare(widget.post['id']);
+                        generateLinkAndShare(widget.post['post_id']);
                       },
-                      child: const Row(
-                        children: [
-                          Icon(
-                            FeatherIcons.link,
-                            size: 16,
-                          ),
-                          Text("Send")
-                        ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
+                        child: const Row(
+                          children: [
+                            Icon(
+                              FeatherIcons.link,
+                              size: 18,
+                            ),
+                            SizedBox(
+                              width: 4,
+                            ),
+                            Text("Share")
+                          ],
+                        ),
                       ),
                     ),
                     GestureDetector(
                       onTap: () {
                         _showRepostDialog(context);
                       },
-                      child: const Row(
-                        children: [
-                          Icon(
-                            Icons.share,
-                            size: 16,
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Text("Share",
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w400))
-                        ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: const Row(
+                          children: [
+                            Icon(
+                              FluentIcons.share_20_regular,
+                              size: 20,
+                            ),
+                            SizedBox(
+                              width: 4,
+                            ),
+                            Text("Repost",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w400))
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -629,12 +695,12 @@ class _PostItemState extends State<PostItem> {
               return Container(
                 child: Column(
                   children: [
-                    Text('Who Liked'),
-                    Divider(),
+                    const Text('Who Liked'),
+                    const Divider(),
                     BlocBuilder<SinglePostCubit, SinglePostState>(
                       builder: (context, state) {
                         if (state is SinglePostLoading) {
-                          return Center(
+                          return const Center(
                             child: CircularProgressIndicator(),
                           );
                         } else if (state is PostLikesLoaded) {
@@ -690,12 +756,17 @@ class _PostItemState extends State<PostItem> {
 
   Widget Media() {
     if (widget.post['media'] != null) {
-      Map<String, dynamic> media = decodeMedia(widget.post['media']);
-      if (media['image'] != null) {
+      final media = widget.post['media'];
+      if (widget.post['media_type'] == 'image' ||
+          widget.post['media_type'] == 'video') {
         return Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.5,
+              minHeight: 200,
+            ),
             width: MediaQuery.of(context).size.width,
             child: Image.network(
-              '${AuthRepo.SERVER}/${media['image']}',
+              '${AuthRepo.SERVER}/${media}',
               fit: BoxFit.fitWidth,
               loadingBuilder: (BuildContext context, Widget child,
                   ImageChunkEvent? loadingProgress) {
@@ -720,21 +791,8 @@ class _PostItemState extends State<PostItem> {
                 ); // Provide a local asset as a placeholder
               },
             ));
-      } else if (media['video'] != null) {
-        return SizedBox(
-            height: MediaQuery.of(context).size.width / videoRatio,
-            width: MediaQuery.of(context).size.width,
-            child: _hasError
-                ? Text("Error loading video")
-                : videoPlayerController != null &&
-                        videoPlayerController!.value.isInitialized
-                    ? Chewie(
-                        controller: chewieController!,
-                      )
-                    : Center(child: CircularProgressIndicator()));
-      } else if (media['audio'] != null) {
-        return AudioPlayerScreen(
-            audioUrl: AuthRepo.SERVER + '/' + media['audio']);
+      } else if (widget.post['media_type'] == 'audio') {
+        return AudioPlayerScreen(audioUrl: '${AuthRepo.SERVER}/$media');
       }
       return Container(
         height: 50,
@@ -774,6 +832,7 @@ class _CommentSectionState extends State<CommentSection>
   String _replyTo = "John Doe";
   int _repliedUserId = 1;
   int _commentId = 1;
+  String? imagePath;
   late int _id;
   void editComment(int id, String content) {
     controller.text = content;
@@ -849,24 +908,24 @@ class _CommentSectionState extends State<CommentSection>
             children: [
               // Post Header
               Container(
-                padding: EdgeInsets.only(
+                padding: const EdgeInsets.only(
                   left: 16,
                   top: 24,
                 ),
                 decoration: BoxDecoration(
                     color: Colors.grey[300],
-                    borderRadius: BorderRadius.only(
+                    borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(12),
                         topRight: Radius.circular(12))),
                 child: Column(
                   children: [
-                    Text('Comments'),
-                    Divider(),
+                    const Text('Comments'),
+                    const Divider(),
                     // Comments List
                     BlocBuilder<CommentCubit, CommentState>(
                       builder: (context, state) {
                         if (state is CommentLoading) {
-                          return Center(
+                          return const Center(
                             child: CircularProgressIndicator(),
                           );
                         } else if (state is CommentLoaded) {
@@ -938,7 +997,7 @@ class _CommentSectionState extends State<CommentSection>
                         return Container();
                       },
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 72,
                     )
                   ],
@@ -950,12 +1009,16 @@ class _CommentSectionState extends State<CommentSection>
                 right: 0,
                 bottom: keyboardHeight,
                 child: Container(
+                  padding: const EdgeInsets.only(left: 16),
                   height: 70,
                   color: Colors.white,
                   child: Row(
                     children: [
                       Expanded(
                         child: TextField(
+                          onChanged: (value) {
+                            setState(() {});
+                          },
                           controller: controller,
                           decoration: InputDecoration(
                             hintText: isReply
@@ -968,29 +1031,67 @@ class _CommentSectionState extends State<CommentSection>
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.send),
-                        onPressed: () {
-                          // Handle send comment
-                          if (isEditComment) {
-                            BlocProvider.of<CommentCubit>(context)
-                                .updateComment(_id, controller.text);
-                          } else if (isReply) {
-                            BlocProvider.of<CommentCubit>(context).addReply(
-                                commentId: _id,
-                                content: controller.text,
-                                replyTo: _replyTo,
-                                repliedUserId: _repliedUserId);
-                          } else if (isEditReply) {
-                            BlocProvider.of<CommentCubit>(context)
-                                .updateReply(_id, controller.text, _commentId);
-                          } else {
-                            BlocProvider.of<CommentCubit>(context)
-                                .addComment(widget.postId, controller.text);
-                          }
-                          FocusScope.of(context).unfocus();
-                          controller.clear();
-                        },
+                        icon: Icon(
+                          Icons.send,
+                          color: controller.text.isEmpty
+                              ? Colors.grey
+                              : Colors.blue,
+                        ),
+                        onPressed: controller.text.isEmpty
+                            ? null
+                            : () {
+                                // Handle send comment
+                                if (isEditComment) {
+                                  BlocProvider.of<CommentCubit>(context)
+                                      .updateComment(_id, controller.text);
+                                } else if (isReply) {
+                                  BlocProvider.of<CommentCubit>(context)
+                                      .addReply(
+                                          commentId: _id,
+                                          content: controller.text,
+                                          replyTo: _replyTo,
+                                          repliedUserId: _repliedUserId,
+                                          imagePath: imagePath);
+                                } else if (isEditReply) {
+                                  BlocProvider.of<CommentCubit>(context)
+                                      .updateReply(
+                                          _id, controller.text, _commentId);
+                                } else {
+                                  BlocProvider.of<CommentCubit>(context)
+                                      .addComment(widget.postId,
+                                          controller.text, imagePath);
+                                }
+                                FocusScope.of(context).unfocus();
+                                controller.clear();
+                                setState(() {
+                                  imagePath = null;
+                                  isEditComment = false;
+                                  isReply = false;
+                                  isEditReply = false;
+                                  _replyTo = "John Doe";
+                                  _repliedUserId = 1;
+                                  _commentId = 1;
+                                });
+                              },
                       ),
+                      IconButton(
+                        icon: Icon(Icons.image,
+                            color:
+                                imagePath != null ? Colors.blue : Colors.black),
+                        onPressed: () async {
+                          // Implement your image upload logic here
+                          // For example, you can use the image_picker package to pick an image
+                          // and then upload it to your server or cloud storage
+                          final pickedFile = await ImagePicker()
+                              .pickImage(source: ImageSource.gallery);
+                          if (pickedFile != null) {
+                            setState(() {
+                              imagePath = pickedFile.path;
+                            });
+                            // Handle image upload
+                          }
+                        },
+                      )
                     ],
                   ),
                 ),
@@ -1014,64 +1115,119 @@ class _RepostDialogState extends State<RepostDialog> {
   TextEditingController controller = TextEditingController();
   String error = '';
   bool isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Repost'),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      title: const Text(
+        'Repost',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(error.isEmpty ? 'Add a caption to your repost' : error),
-          SizedBox(height: 16.0),
+          if (error.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                error,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 14.0,
+                ),
+              ),
+            ),
+          const Text('Add a caption to your repost',
+              style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w400)),
+          const SizedBox(
+            height: 16.0,
+          ),
           TextField(
             controller: controller,
             decoration: InputDecoration(
               hintText: 'Enter your caption',
-              border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 10.0,
+                horizontal: 12.0,
+              ),
             ),
+            maxLength:
+                100, // Optional: Add a max length to limit the caption size
           ),
         ],
       ),
       actions: [
-        ElevatedButton(
-          onPressed: () async {
-            if (isLoading) return;
-            setState(() {
-              isLoading = true;
-            });
-            if (controller.text.isEmpty) {
-              setState(() {
-                error = 'Caption cannot be empty';
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Caption cannot be empty'),
-                  dismissDirection: DismissDirection.up,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-              return;
-            }
-
-            final res = await BlocProvider.of<PostCubit>(context).repostPost(
-                {'post_id': widget.postId, 'content': controller.text});
-            if (res) {
-              await BlocProvider.of<PostCubit>(context).getNewRePost();
-            }
-            jumpToTop();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: res
-                      ? Text('Post reposted')
-                      : Text("Post didn't reposted try again later")),
-            );
-            setState(() {
-              isLoading = false;
-            });
-            Navigator.pop(context);
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context); // Close dialog on cancel
           },
-          child: Text('Submit',
-              style: TextStyle(color: isLoading ? Colors.grey : Colors.black)),
+          child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+        ),
+        ElevatedButton(
+          onPressed: isLoading
+              ? null
+              : () async {
+                  if (controller.text.isEmpty) {
+                    setState(() {
+                      error = 'Caption cannot be empty';
+                    });
+                    return;
+                  }
+                  setState(() {
+                    isLoading = true;
+                  });
+
+                  final res = await BlocProvider.of<PostCubit>(context)
+                      .repostPost({
+                    'post_id': widget.postId,
+                    'content': controller.text
+                  });
+                  if (res) {
+                    await BlocProvider.of<PostCubit>(context).getNewRePost();
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: res
+                          ? const Text('Post reposted successfully')
+                          : const Text("Failed to repost, try again later"),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  setState(() {
+                    isLoading = false;
+                  });
+                  scrollToTop();
+                  Navigator.pop(context);
+                },
+          style: ElevatedButton.styleFrom(
+            backgroundColor:
+                isLoading ? Colors.grey[300] : Theme.of(context).primaryColor,
+            padding:
+                const EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+          ),
+          child: isLoading
+              ? const SizedBox(
+                  height: 20.0,
+                  width: 20.0,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.0,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text(
+                  'Submit',
+                  style: TextStyle(color: Colors.white),
+                ),
         ),
       ],
     );
@@ -1110,14 +1266,14 @@ class _BottomSheetContentState extends State<BottomSheetContent> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
         color: Colors.grey[200],
       ),
       child: Column(
         children: <Widget>[
-          SizedBox(height: 32.0),
+          const SizedBox(height: 32.0),
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -1127,8 +1283,8 @@ class _BottomSheetContentState extends State<BottomSheetContent> {
               children: [
                 ListTile(
                   leading: isSaved
-                      ? Icon(Icons.bookmark_remove_rounded)
-                      : Icon(Icons.bookmark_add_rounded),
+                      ? const Icon(Icons.bookmark_remove_rounded)
+                      : const Icon(Icons.bookmark_add_rounded),
                   title: Text(isSaved ? 'Unsave Post' : 'Save Post'),
                   subtitle: Text(isSaved
                       ? 'Remove this post from your saved post'
@@ -1144,10 +1300,10 @@ class _BottomSheetContentState extends State<BottomSheetContent> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: res
-                              ? Text('Post Unsaved')
-                              : Text('Post Didn\'t Unsaved'),
-                          padding:
-                              EdgeInsets.only(bottom: 20, top: 10, left: 10),
+                              ? const Text('Post Unsaved')
+                              : const Text('Post Didn\'t Unsaved'),
+                          padding: const EdgeInsets.only(
+                              bottom: 20, top: 10, left: 10),
                         ),
                       );
                     } else {
@@ -1160,19 +1316,19 @@ class _BottomSheetContentState extends State<BottomSheetContent> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: res
-                              ? Text('Post Saved')
-                              : Text('Post Didn\'t Saved'),
-                          padding:
-                              EdgeInsets.only(bottom: 20, top: 10, left: 10),
+                              ? const Text('Post Saved')
+                              : const Text('Post Didn\'t Saved'),
+                          padding: const EdgeInsets.only(
+                              bottom: 20, top: 10, left: 10),
                         ),
                       );
                     }
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.flag),
-                  title: Text('Report'),
-                  subtitle: Text('We won\'t tell them who reported'),
+                  leading: const Icon(Icons.flag),
+                  title: const Text('Report'),
+                  subtitle: const Text('We won\'t tell them who reported'),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -1185,71 +1341,76 @@ class _BottomSheetContentState extends State<BottomSheetContent> {
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.flag),
-                  title: Text('Copy Link'),
+                  leading: const Icon(Icons.flag),
+                  title: const Text('Copy Link'),
                   onTap: () async {},
                 ),
               ],
             ),
           ),
-          SizedBox(height: 16.0),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(25.0),
-            ),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Icon(Icons.flag),
-                  title: Text(
-                      widget.isRepost == true ? 'Edit Repost' : 'Edit Post'),
-                  subtitle: Text(widget.isRepost == true
-                      ? 'Edit the Content of the Repost'
-                      : 'Edit the Content of the Post'),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => EditPost(
-                                  isRepost: widget.isRepost,
-                                  post: widget.post,
-                                )));
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.flag),
-                  title: Text(widget.isRepost == true
-                      ? 'Delete Repost'
-                      : 'Delete Post'),
-                  subtitle: Text(widget.isRepost == true
-                      ? 'Remove this post from your profile'
-                      : 'Remove this post from your profile'),
-                  onTap: () async {
-                    var res;
-                    if (widget.isRepost == true) {
-                      res = await BlocProvider.of<PostCubit>(context)
-                          .deleteRepost(widget.post['repost_id'],
-                              isRepost: true);
-                    } else {
-                      res = await BlocProvider.of<PostCubit>(context)
-                          .deletePost(widget.post['post_id']);
-                    }
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: res
-                            ? Text('Post deleted')
-                            : Text('Post deletion failed'),
-                        padding: EdgeInsets.only(bottom: 20, top: 10, left: 10),
+          const SizedBox(height: 16.0),
+          (user != null && user!.id == widget.post['user_id']) ||
+                  (user != null && user!.id == widget.post['repost_user_id'])
+              ? Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(25.0),
+                  ),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.flag),
+                        title: Text(widget.isRepost == true
+                            ? 'Edit Repost'
+                            : 'Edit Post'),
+                        subtitle: Text(widget.isRepost == true
+                            ? 'Edit the Content of the Repost'
+                            : 'Edit the Content of the Post'),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => EditPost(
+                                        isRepost: widget.isRepost,
+                                        post: widget.post,
+                                      )));
+                        },
                       ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          )
+                      ListTile(
+                        leading: const Icon(Icons.flag),
+                        title: Text(widget.isRepost == true
+                            ? 'Delete Repost'
+                            : 'Delete Post'),
+                        subtitle: Text(widget.isRepost == true
+                            ? 'Remove this post from your profile'
+                            : 'Remove this post from your profile'),
+                        onTap: () async {
+                          bool res;
+                          if (widget.isRepost == true) {
+                            res = await BlocProvider.of<PostCubit>(context)
+                                .deleteRepost(widget.post['repost_id'],
+                                    isRepost: true);
+                          } else {
+                            res = await BlocProvider.of<PostCubit>(context)
+                                .deletePost(widget.post['post_id']);
+                          }
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: res
+                                  ? const Text('Post deleted')
+                                  : const Text('Post deletion failed'),
+                              padding: const EdgeInsets.only(
+                                  bottom: 20, top: 10, left: 10),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink()
         ],
       ),
     );
@@ -1268,11 +1429,11 @@ class _BottomSheetContentState extends State<BottomSheetContent> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Report'),
+          title: const Text('Report'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('What is your report?'),
+              const Text('What is your report?'),
               Column(
                 children: [
                   ...reportTypes
@@ -1289,10 +1450,10 @@ class _BottomSheetContentState extends State<BottomSheetContent> {
                       .toList(),
                 ],
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               TextField(
                 controller: controller,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Enter your report',
                   border: OutlineInputBorder(),
                 ),
@@ -1311,11 +1472,11 @@ class _BottomSheetContentState extends State<BottomSheetContent> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                       content: res
-                          ? Text('Report submitted')
-                          : Text("Report didn't submitted")),
+                          ? const Text('Report submitted')
+                          : const Text("Report didn't submitted")),
                 );
               },
-              child: Text('Submit'),
+              child: const Text('Submit'),
             ),
           ],
         );
@@ -1329,13 +1490,16 @@ class ActionButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
 
-  ActionButton(
-      {required this.icon, required this.label, required this.onPressed});
+  const ActionButton(
+      {super.key,
+      required this.icon,
+      required this.label,
+      required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 12.0),
+      margin: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Column(
         children: <Widget>[
           IconButton(
@@ -1355,7 +1519,8 @@ class EditPosts extends StatefulWidget {
   final Map<String, dynamic> post;
   final bool? isSinglePost;
   final bool? isRepost;
-  EditPosts({super.key, required this.post, this.isRepost, this.isSinglePost});
+  const EditPosts(
+      {super.key, required this.post, this.isRepost, this.isSinglePost});
 
   @override
   State<EditPosts> createState() => _EditPostsState();
@@ -1363,7 +1528,7 @@ class EditPosts extends StatefulWidget {
 
 class _EditPostsState extends State<EditPosts> {
   final TextEditingController controller = TextEditingController();
-  double _keyboardHeight = 0.0;
+  final double _keyboardHeight = 0.0;
   User? user;
   late String dropdownValue;
   @override
@@ -1392,22 +1557,22 @@ class _EditPostsState extends State<EditPosts> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.all(16.0),
+      decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Text(
+          const Text(
             'Edit Post',
             style: TextStyle(
               fontSize: 24.0,
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 16.0),
+          const SizedBox(height: 16.0),
           Row(
             children: [
               CircleAvatar(
@@ -1437,7 +1602,8 @@ class _EditPostsState extends State<EditPosts> {
                         child: DropdownButton<String>(
                           dropdownColor: Colors.amber,
                           iconSize: 35,
-                          borderRadius: BorderRadius.all(Radius.circular(16)),
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(16)),
                           value: dropdownValue,
                           underline: const SizedBox(),
                           onChanged: (String? newValue) {
@@ -1451,7 +1617,7 @@ class _EditPostsState extends State<EditPosts> {
                               value: value,
                               child: Text(
                                 value,
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontWeight: FontWeight.w500, fontSize: 18),
                               ),
                             );
@@ -1467,7 +1633,7 @@ class _EditPostsState extends State<EditPosts> {
           TextField(
             autofocus: true,
             controller: controller,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: 'Enter your post',
               border: OutlineInputBorder(),
             ),
@@ -1477,7 +1643,7 @@ class _EditPostsState extends State<EditPosts> {
             children: <Widget>[
               ElevatedButton(
                 onPressed: () async {
-                  var res;
+                  bool res;
                   if (widget.isRepost == true) {
                     res = await BlocProvider.of<PostCubit>(context).editRepost({
                       'post_id': widget.post['repost_id'],
@@ -1544,17 +1710,17 @@ class _EditPostsState extends State<EditPosts> {
 
                   Navigator.pop(context);
                 },
-                child: Text('Save'),
+                child: const Text('Save'),
               ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text('Cancel'),
+                child: const Text('Cancel'),
               ),
             ],
           ),
-          SizedBox(height: 300),
+          const SizedBox(height: 300),
         ],
       ),
     );

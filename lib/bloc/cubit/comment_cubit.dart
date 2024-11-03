@@ -48,16 +48,27 @@ class CommentCubit extends Cubit<CommentState> {
     }
   }
 
-  void addComment(int postId, String content) async {
-    final comment = await postRepo.setComment(postId: postId, content: content);
+  void addComment(int postId, String content, String? imagePath) async {
+    final comment = await postRepo.setComment(
+        postId: postId, content: content, imagePath: imagePath);
     if (comment == null) return;
     if (state is ReplyLoaded) {
       final state = this.state as ReplyLoaded;
-      emit(ReplyLoaded(
+      emit(ReplyLoading(
           comments: state.comments..insert(0, comment),
           replies: state.replies));
     } else if (state is CommentLoaded) {
       final state = this.state as CommentLoaded;
+      emit(CommentAdded(
+        comments: state.comments..insert(0, comment),
+      ));
+    } else if (state is ReplyLoading) {
+      final state = this.state as ReplyLoading;
+      emit(ReplyLoaded(
+          comments: state.comments..insert(0, comment),
+          replies: state.replies));
+    } else if (state is CommentAdded) {
+      final state = this.state as CommentAdded;
       emit(CommentLoaded(
         comments: state.comments..insert(0, comment),
       ));
@@ -168,12 +179,14 @@ class CommentCubit extends Cubit<CommentState> {
       {required int commentId,
       required String content,
       required String replyTo,
-      required int repliedUserId}) async {
+      required int repliedUserId,
+      String? imagePath}) async {
     final reply = await postRepo.setCommentReply(
         commentId: commentId,
         content: content,
         replyTo: replyTo,
-        repliedUserId: repliedUserId);
+        repliedUserId: repliedUserId,
+        imagePath: imagePath);
     if (reply == null) return;
     if (state is ReplyLoaded) {
       final state = this.state as ReplyLoaded;

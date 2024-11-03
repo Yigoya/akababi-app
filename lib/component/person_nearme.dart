@@ -1,11 +1,13 @@
 import 'package:akababi/component/follow_button.dart';
+import 'package:akababi/component/post_follow_button.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:flutter/material.dart';
 
 class ProfileWithDistance extends StatelessWidget {
   final Map<String, dynamic> people;
 
-  ProfileWithDistance({
+  const ProfileWithDistance({
+    super.key,
     required this.people,
   });
 
@@ -32,13 +34,13 @@ class ProfileWithDistance extends StatelessWidget {
           top: 8,
           right: 8,
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             color: Colors.grey.withOpacity(0.7),
             child: Text(
               people['distance'] != 0
                   ? '${people['distance']} km'
                   : 'Right Here',
-              style: TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ),
@@ -53,13 +55,13 @@ class ProfileWithDistance extends StatelessWidget {
               // Name
               Text(
                 people['full_name'],
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
-              // Follow Button
-              FollowButton(
+              PostFollowButton(
                 id: people['id'],
                 friendshipStatus: people['friendshipStatus'],
               ),
+              // Follow Button
             ],
           ),
         ),

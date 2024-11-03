@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SignUpNamePage extends StatefulWidget {
+  const SignUpNamePage({super.key});
+
   @override
   State<SignUpNamePage> createState() => _SignUpNamePageState();
 }
@@ -49,9 +51,9 @@ class _SignUpNamePageState extends State<SignUpNamePage> {
               'Enter the name you use in real life.',
               style: TextStyle(color: Colors.grey[600]),
             ),
-            Text(
+            const Text(
               'First and last name have to be more than 2 character.',
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: Colors.red),
             ),
             const SizedBox(height: 30),
             CommonTextField(
@@ -59,13 +61,13 @@ class _SignUpNamePageState extends State<SignUpNamePage> {
               labelText: 'First Name',
               controller: firstNameController,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             CommonTextField(
               onChanged: _onChanged,
               labelText: 'Last Name',
               controller: lastNameController,
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             CommonButton(
               active: active,
               buttonText: 'Next',
@@ -78,12 +80,12 @@ class _SignUpNamePageState extends State<SignUpNamePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => BirthDatePage(),
+                    builder: (context) => const BirthDatePage(),
                   ),
                 );
               },
             ),
-            Spacer(),
+            const Spacer(),
             TextButton(
               onPressed: () {
                 // Handle already have an account action
@@ -92,7 +94,7 @@ class _SignUpNamePageState extends State<SignUpNamePage> {
               child: const Center(
                 child: Text(
                   'I already have an account',
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(fontSize: 16, color: Colors.red),
                 ),
               ),
             ),

@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:akababi/model/Signup.dart';
 import 'package:akababi/model/User.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';

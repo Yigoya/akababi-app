@@ -4,7 +4,6 @@ import 'package:akababi/pages/post/video_view.dart';
 import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logger/logger.dart';
 
 class ScrollPostPage extends StatefulWidget {
   final int startIndex;
@@ -31,9 +30,8 @@ class _ScrollPostPageState extends State<ScrollPostPage> {
                 final content = contentList[index];
                 if (content['media_type'] == 'image') {
                   return ImageViewingPage(
-                      imageUrl: '${AuthRepo.SERVER}/${content['media']}',
-                      postedBy: content["full_name"],
-                      likes: 12);
+                    imageUrl: '${AuthRepo.SERVER}/${content['media']}',
+                  );
                 } else if (content['media_type'] == 'video') {
                   return VideoPlayerPage(
                       videoUrl:
@@ -46,7 +44,7 @@ class _ScrollPostPageState extends State<ScrollPostPage> {
               },
             );
           } else {
-            return Center(
+            return const Center(
               child: CircularProgressIndicator.adaptive(),
             );
           }
