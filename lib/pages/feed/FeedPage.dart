@@ -27,7 +27,6 @@ class FeedPage extends StatefulWidget {
 
 class _FeedPageState extends State<FeedPage> {
   final bool _showAppBar = true;
-  bool _switchValue = true;
 
   final authRepo = AuthRepo();
   String userFullName = '';
@@ -47,16 +46,9 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   void init() async {
-    final pref = await SharedPreferences.getInstance();
-    bool location = pref.getBool('location') ?? true;
-
     await BlocProvider.of<PostCubit>(context).getFeed(context);
-    BlocProvider.of<AuthBloc>(context)
-        .add(GetLocationEvent(context: context, value: location));
+
     BlocProvider.of<NotificationCubit>(context).getNotifications();
-    setState(() {
-      _switchValue = location;
-    });
   }
 
   void scrollListener() {
@@ -137,50 +129,6 @@ class _FeedPageState extends State<FeedPage> {
           controller: scrollController,
           child: Column(
             children: [
-              Container(
-                color: Colors.grey[200],
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Flexible(
-                            child: Text(
-                                "By toggling the switch control your locationvisibility in the app")),
-                        SizedBox(
-                          height: 35,
-                          width: 45,
-                          child: FittedBox(
-                            fit: BoxFit.fill,
-                            child: Switch(
-                                value: _switchValue,
-                                onChanged: (newValue) {
-                                  if (newValue) {
-                                    BlocProvider.of<AuthBloc>(context).add(
-                                        GetLocationEvent(
-                                            context: context, value: true));
-                                  } else {
-                                    BlocProvider.of<AuthBloc>(context).add(
-                                        GetLocationEvent(
-                                            context: context, value: false));
-                                  }
-                                  setState(() {
-                                    _switchValue = newValue;
-                                  });
-                                }),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: 1,
-              ),
               BlocBuilder<PostCubit, PostState>(
                 builder: (context, state) {
                   if (state is PostLoading) {
@@ -188,6 +136,8 @@ class _FeedPageState extends State<FeedPage> {
                         children: [PostItemSkeleton(), PostItemSkeleton()]);
                   } else if (state is PostLoaded) {
                     var posts = state.posts;
+                    final randInt =
+                        Random().nextInt(((posts.length / 2) + 1).toInt());
                     if (state.posts.isEmpty) {
                       return Container(
                         height: 560,
@@ -211,9 +161,7 @@ class _FeedPageState extends State<FeedPage> {
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: posts.length,
                           itemBuilder: (context, index) {
-                            final randInt =
-                                Random().nextInt(((index / 2) + 1).toInt());
-                            if (index == randInt &&
+                            if (index == 0 &&
                                 state.recommendedPeople.isNotEmpty) {
                               return RecommendedPeoples(
                                 people: state.recommendedPeople,

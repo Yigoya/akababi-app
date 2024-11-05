@@ -834,6 +834,9 @@ class _CommentSectionState extends State<CommentSection>
   int _commentId = 1;
   String? imagePath;
   late int _id;
+  final DraggableScrollableController _controller =
+      DraggableScrollableController();
+
   void editComment(int id, String content) {
     controller.text = content;
     setState(() {
@@ -843,6 +846,14 @@ class _CommentSectionState extends State<CommentSection>
       isReply = false;
       isEditReply = false;
     });
+  }
+
+  void _expandSheet() {
+    _controller.animateTo(
+      1.0, // Maximum extent
+      duration: Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
   }
 
   void editReply(int id, String content, int commentId) {
@@ -889,7 +900,7 @@ class _CommentSectionState extends State<CommentSection>
         .instance.platformDispatcher.views.first.viewInsets.bottom;
 
     setState(() {
-      keyboardHeight = bottomInset / 2; // Update the keyboard height
+      keyboardHeight = bottomInset / 1.88; // Update the keyboard height
     });
 
     print("Keyboard height: $keyboardHeight");
@@ -898,6 +909,8 @@ class _CommentSectionState extends State<CommentSection>
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
+        controller: _controller,
+        snap: true, // Snap the sheet to the nearest snap point
         expand: false, // Ensures it starts at a small height and can expand
         minChildSize:
             0.5, // Minimum size of the bottom sheet (30% of screen height)
@@ -1016,6 +1029,9 @@ class _CommentSectionState extends State<CommentSection>
                     children: [
                       Expanded(
                         child: TextField(
+                          onTap: () {
+                            _expandSheet();
+                          },
                           onChanged: (value) {
                             setState(() {});
                           },

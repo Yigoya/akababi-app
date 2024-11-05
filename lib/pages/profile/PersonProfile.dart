@@ -159,7 +159,7 @@ class _PersonPageState extends State<PersonPage> {
                   ),
                   const Divider(),
                   // Suggested People Section
-                  userProfile["recommendedPeople"].length != 0
+                  state.recommendedPeople.length != 0
                       ? Column(
                           children: [
                             Padding(
@@ -180,12 +180,11 @@ class _PersonPageState extends State<PersonPage> {
                               height: 300,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
-                                itemCount:
-                                    userProfile["recommendedPeople"].length,
+                                itemCount: state.recommendedPeople.length,
                                 itemBuilder: (context, index) {
-                                  final person =
-                                      userProfile["recommendedPeople"][index];
-                                  return ProfileWithFollow(person: person);
+                                  final person = state.recommendedPeople[index];
+                                  return ProfileWithFollow(
+                                      person: person, fromProfile: true);
                                 },
                               ),
                             ),

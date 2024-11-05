@@ -22,8 +22,8 @@ class PostCubit extends Cubit<PostState> {
     final location = await getCurrentLocation(context);
     final post = await PostRepo().getPostsByUserId(
         id: user.id,
-        longitude: location!.longitude,
-        latitude: location.latitude,
+        longitude: location != null ? location.longitude : null,
+        latitude: location != null ? location.latitude : null,
         refreach: refreach);
     emit(PostLoaded(
         posts: post["posts"], recommendedPeople: post["recommendedPeople"]));
@@ -192,5 +192,15 @@ class PostCubit extends Cubit<PostState> {
       }
     }
     return indices;
+  }
+
+  void removePersonFromList(int id) {
+    if (state is PostLoaded) {
+      final recommendedPeople = (state as PostLoaded).recommendedPeople;
+      recommendedPeople.removeWhere((element) => element['id'] == id);
+      emit(PostLoaded(
+          posts: (state as PostLoaded).posts,
+          recommendedPeople: recommendedPeople));
+    }
   }
 }

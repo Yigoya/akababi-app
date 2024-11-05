@@ -54,9 +54,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
             child: TextField(
               onChanged: (value) {
-                if (value.length > 2) {
-                  BlocProvider.of<SearchCubit>(context).search(value);
-                }
+                BlocProvider.of<SearchCubit>(context).search(value);
               },
               decoration: const InputDecoration(
                 hintText: 'Search...',

@@ -10,8 +10,8 @@ class AuthRepo {
   static bool isServer = false;
   User? auser;
   String? atoken;
-  static String SERVER = 'http://192.168.192.17:3000';
-  // static String SERVER = 'https://api1.myakababi.com';
+  // static String SERVER = 'http://10.2.69.139:3000';
+  static String SERVER = 'https://api1.myakababi.com';
 
   /// Retrieves the user from SharedPreferences.
   /// Returns the user object if it exists, otherwise returns null.
@@ -307,8 +307,7 @@ class AuthRepo {
   /// Returns a [Future] that completes with a [bool] value indicating whether the location was set successfully.
   /// If the location is set successfully, the method returns `true`. Otherwise, it returns `false`.
   /// Throws an exception if an error occurs during the process.
-  Future<bool> setLocation(
-      {required double latitude, required double longitude}) async {
+  Future<bool> setLocation({double? latitude, double? longitude}) async {
     try {
       final user = await this.user;
       var data = {"id": user!.id, "latitude": latitude, "longitude": longitude};

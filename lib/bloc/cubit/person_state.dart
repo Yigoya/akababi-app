@@ -11,5 +11,10 @@ final class PersonLoaded extends PersonState {
   final Map<String, dynamic> person;
   final List<Map<String, dynamic>> posts;
   final List<Map<String, dynamic>> friends;
-  PersonLoaded(this.person, this.posts, this.friends);
+  final List<Map<String, dynamic>> recommendedPeople;
+  PersonLoaded(
+      {required this.person,
+      required this.posts,
+      required this.friends,
+      required this.recommendedPeople});
 }

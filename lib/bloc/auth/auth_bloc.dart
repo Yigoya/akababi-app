@@ -276,7 +276,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final pref = await SharedPreferences.getInstance();
     pref.setBool('location', event.value);
     final location = await getCurrentLocation(event.context);
-    await authRepo.setLocation(
-        latitude: location!.latitude, longitude: location.longitude);
+    if (event.value) {
+      await authRepo.setLocation(
+          latitude: location!.latitude, longitude: location.longitude);
+    } else {
+      await authRepo.setLocation(latitude: null, longitude: null);
+    }
   }
 }

@@ -234,7 +234,7 @@ Future<bool> requestLocationPermission() async {
 /// ```dart
 /// _showLocationServiceDialog(context);
 /// ```
-Future<void> _showLocationServiceDialog(BuildContext context) async {
+Future<void> showLocationServiceDialog(BuildContext context) async {
   showDialog<void>(
     context: context,
     barrierDismissible:
@@ -243,7 +243,7 @@ Future<void> _showLocationServiceDialog(BuildContext context) async {
       return AlertDialog(
         title: const Text('Location Services Disabled'),
         content: const Text(
-            'Please enable location services in your device settings. After enabling, tap "Settings" to continue. or "Cancel" to dismiss see the result in 30 seconds'),
+            'Please enable location services in your device settings. After enabling, tap "Settings" to continue. or "Cancel". then refrash the page'),
         actions: <Widget>[
           TextButton(
             child: const Text('Cancel'),
@@ -296,7 +296,7 @@ trigerNotification(String title, String body) {
 ///   // Location service is not enabled within the specified timeout
 /// }
 /// ```
-Future<bool> _waitForLocationServiceEnable({required Duration timeout}) async {
+Future<bool> waitForLocationServiceEnable({required Duration timeout}) async {
   DateTime endTime = DateTime.now().add(timeout);
   while (DateTime.now().isBefore(endTime)) {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -335,19 +335,13 @@ Future<Position?> getCurrentLocation(BuildContext context) async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        await _showLocationServiceDialog(context);
-        bool userEnabledService = await _waitForLocationServiceEnable(
-            timeout: const Duration(seconds: 30));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'Location services are still disabled. Please enable them to get accurate result.')),
+        );
 
-        if (!userEnabledService) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text(
-                    'Location services are still disabled. Please enable them to get accurate result.')),
-          );
-
-          return defaultLocation;
-        }
+        return null;
       }
       final locationData = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
@@ -356,15 +350,15 @@ Future<Position?> getCurrentLocation(BuildContext context) async {
 
       return locationData;
     } catch (e) {
-      return defaultLocation;
+      return null;
     }
   } else if (permission.isDenied) {
-    return defaultLocation;
+    return null;
   } else if (permission.isPermanentlyDenied) {
     openAppSettings();
-    return defaultLocation;
+    return null;
   }
-  return defaultLocation;
+  return null;
 }
 
 // Future<Position?> getCurrentLocation() async {

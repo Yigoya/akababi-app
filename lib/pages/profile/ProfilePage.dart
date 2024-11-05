@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'package:akababi/bloc/auth/auth_bloc.dart';
+import 'package:akababi/bloc/auth/auth_event.dart';
+import 'package:akababi/bloc/cubit/post_cubit.dart';
 import 'package:akababi/component/PostItem.dart';
 import 'package:akababi/pages/profile/cubit/picture_cubit.dart';
 import 'package:akababi/pages/profile/cubit/profile_cubit.dart';
@@ -6,6 +9,7 @@ import 'package:akababi/repositiory/AuthRepo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -18,6 +22,7 @@ class _ProfilePageState extends State<ProfilePage>
     with TickerProviderStateMixin {
   late TabController tabController;
   ScrollController scrollController = ScrollController();
+  bool _switchValue = true;
 
   @override
   void initState() {
@@ -31,6 +36,18 @@ class _ProfilePageState extends State<ProfilePage>
           scrollController.position.pixels == 0) {
         print("Reached top");
       }
+    });
+    init();
+  }
+
+  void init() async {
+    final pref = await SharedPreferences.getInstance();
+    bool location = pref.getBool('location') ?? true;
+
+    BlocProvider.of<AuthBloc>(context)
+        .add(GetLocationEvent(context: context, value: location));
+    setState(() {
+      _switchValue = location;
     });
   }
 
@@ -100,41 +117,131 @@ class _ProfilePageState extends State<ProfilePage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (state is PictureLoaded)
-                ClipOval(
-                  child: Image.file(
-                    File(state.imagePath),
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Flexible(
+                      child: Text(
+                          "By toggling the switch control your locationvisibility in the app")),
+                  SizedBox(
+                    height: 35,
+                    width: 45,
+                    child: FittedBox(
+                      fit: BoxFit.fill,
+                      child: Switch(
+                          value: _switchValue,
+                          onChanged: (newValue) {
+                            if (newValue) {
+                              BlocProvider.of<AuthBloc>(context).add(
+                                  GetLocationEvent(
+                                      context: context, value: true));
+                            } else {
+                              BlocProvider.of<AuthBloc>(context).add(
+                                  GetLocationEvent(
+                                      context: context, value: false));
+                            }
+                            setState(() {
+                              _switchValue = newValue;
+                            });
+                          }),
+                    ),
                   ),
+                ],
+              ),
+              if (state is PictureLoaded)
+                Stack(
+                  children: [
+                    Container(
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 10,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: Image.file(
+                          File(state.imagePath),
+                          width: 160,
+                          height: 160,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                        bottom: 1,
+                        right: 1,
+                        child: IconButton(
+                            onPressed: () {
+                              BlocProvider.of<PictureCubit>(context).setImage();
+                            },
+                            icon: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle),
+                                child: const Icon(Icons.camera))))
+                  ],
                 )
               else if (state is PictureLoadedInternet)
-                ClipOval(
-                  child: Image.network(
-                    "${AuthRepo.SERVER}/${state.imageUrl}",
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return ClipOval(
-                        child: IconButton(
-                          onPressed: () {
-                            BlocProvider.of<PictureCubit>(context).setImage();
-                          },
-                          icon: Container(
-                            decoration:
-                                const BoxDecoration(color: Colors.black),
-                            child: const Icon(
-                              Icons.person,
-                              size: 120,
-                              color: Colors.white,
-                            ),
+                Stack(
+                  children: [
+                    Container(
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 10,
+                            offset: Offset(0, 5),
                           ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: Image.network(
+                          "${AuthRepo.SERVER}/${state.imageUrl}",
+                          width: 160,
+                          height: 160,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return ClipOval(
+                              child: IconButton(
+                                onPressed: () {
+                                  BlocProvider.of<PictureCubit>(context)
+                                      .setImage();
+                                },
+                                icon: Container(
+                                  decoration:
+                                      const BoxDecoration(color: Colors.black),
+                                  child: const Icon(
+                                    Icons.person,
+                                    size: 120,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                    Positioned(
+                        bottom: 1,
+                        right: 1,
+                        child: IconButton(
+                            onPressed: () {
+                              BlocProvider.of<PictureCubit>(context).setImage();
+                            },
+                            icon: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle),
+                                child: const Icon(Icons.camera))))
+                  ],
                 )
               else if (state is PictureEmpty)
                 ClipOval(

@@ -5,16 +5,37 @@ import 'package:akababi/pages/Nearme/nearme_people_scroll.dart';
 import 'package:akababi/pages/Nearme/nearme_post_scroll.dart';
 import 'package:akababi/skeleton/PeopleItemSkeleton.dart';
 import 'package:akababi/skeleton/postItemSkeleton.dart';
+import 'package:akababi/utility.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class NearMePage extends StatelessWidget {
+class NearMePage extends StatefulWidget {
   NearMePage({super.key});
 
   @override
+  State<NearMePage> createState() => _NearMePageState();
+}
+
+class _NearMePageState extends State<NearMePage> {
+  @override
+  void initState() {
+    super.initState();
+    init();
+  }
+
+  void init() async {
+    final location = await getCurrentLocation(context);
+    print(location);
+    if (location == null) {
+      showLocationServiceDialog(context);
+    } else {
+      BlocProvider.of<PeopleCubit>(context).getNearMe(context);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    BlocProvider.of<PeopleCubit>(context).getNearMe(context);
     return DefaultTabController(
       length: 2,
       child: Scaffold(

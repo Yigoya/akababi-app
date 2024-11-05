@@ -53,8 +53,8 @@ class PostRepo {
   /// Throws an [Exception] if the request fails or if there is a connection issue.
   Future<Map<String, dynamic>> getPostsByUserId(
       {required int id,
-      required double latitude,
-      required double longitude,
+      double? latitude,
+      double? longitude,
       String? lastPostCreatedAt,
       bool? refreach}) async {
     int index = refreach != true ? 0 : getFeedIndex();
@@ -63,24 +63,30 @@ class PostRepo {
     //   'latitude': latitude,
     //   'longitude': longitude,
     // });
-    try {
-      final response = await _dio.get('$server/post/$id', queryParameters: {
+    var query;
+    if (latitude != null || longitude != null) {
+      query = {
         'latitude': latitude,
         'longitude': longitude,
         'index': index,
-      });
+      };
+    }
+    try {
       logger.d({
         'latitude': latitude,
         'longitude': longitude,
-        'index': feedIndex,
       });
-
+      final response =
+          await _dio.get('$server/post/$id', queryParameters: query);
+      logger.d(response.data);
       final postData = response.data["posts"] as List<dynamic>;
       final posts = postData.map((json) {
         return json as Map<String, dynamic>;
       }).toList();
 
-      final peopleData = response.data["recommendedPeople"] as List<dynamic>;
+      final peopleData = response.data["recommendedPeople"] != null
+          ? response.data["recommendedPeople"] as List<dynamic>
+          : [];
       final peoples = peopleData.map((json) {
         return json as Map<String, dynamic>;
       }).toList();

@@ -463,8 +463,8 @@ class _PostPageState extends State<PostPage> {
       print("pass location");
       Map<String, dynamic> formDataMap = {
         "user_id": user!.id,
-        "longitude": loc!.longitude,
-        "latitude": loc.latitude,
+        "longitude": _switchValue ? loc!.longitude : null,
+        "latitude": _switchValue ? loc!.latitude : null,
         "privacy_setting": dropdownValue,
         "content": _textEditingController.text,
         selectedMedia["fileType"]: await MultipartFile.fromFile(

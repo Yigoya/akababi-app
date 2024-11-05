@@ -186,6 +186,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
               //     ],
               //   ),
               // ),
+              SizedBox(
+                height: 40,
+              ),
             ],
           );
         } else if (snapshot.hasError) {

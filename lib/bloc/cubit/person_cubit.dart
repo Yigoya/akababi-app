@@ -25,18 +25,22 @@ class PersonCubit extends Cubit<PersonState> {
     // emit(PeopleLoaded(data:));
   }
 
-  Future<Map<String, String>?> getPepoleById(int id) async {
+  Future<void> getPepoleById(int id) async {
     emit(PersonLoading());
     final posts = await userRepo.getUserPost(id);
     final friends = await userRepo.getUserFriend(id);
     final user = await authRepo.user;
     p.d(posts);
     p.d(friends);
-
     final people = await peopleRepo.getPeopleById(user!.id, id);
-    emit(PersonLoaded(people, posts, friends));
-    print('${people['latitude']}, ${people['longitude']}');
-    return await getCityAndCountry(people['latitude'], people['longitude']);
+    final recomendedPeople =
+        (people['recommendedPeople'] as List).cast<Map<String, dynamic>>();
+    p.d(recomendedPeople);
+    emit(PersonLoaded(
+        person: people,
+        posts: posts,
+        friends: friends,
+        recommendedPeople: recomendedPeople));
   }
 
   Future<bool> blockUser(Map<String, dynamic> data) async {
@@ -49,5 +53,16 @@ class PersonCubit extends Cubit<PersonState> {
     final user = await authRepo.user;
     final data = {'user_id': user!.id, 'friend_id': id};
     return await peopleRepo.removeFriendRequest(data);
+  }
+
+  void removeRecommendedPeople(int id) {
+    emit(PersonLoaded(
+        person: (state as PersonLoaded).person,
+        posts: (state as PersonLoaded).posts,
+        friends: (state as PersonLoaded).friends,
+        recommendedPeople: (state as PersonLoaded)
+            .recommendedPeople
+            .where((element) => element['id'] != id)
+            .toList()));
   }
 }
